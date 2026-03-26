@@ -3,7 +3,12 @@ import "./Auth.css";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
-export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTab }) {
+export default function Login({
+  setUser,
+  setLoggedIn,
+  setAuthScreen,
+  setActiveTab
+}) {
   const [form, setForm] = useState({ identifier: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -12,8 +17,9 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
   const login = async () => {
     setError("");
 
-    if (!form.email || !form.password) {
-      setError("Please enter email and password");
+    // ✅ FIXED
+    if (!form.identifier || !form.password) {
+      setError("Enter email / username / phone and password");
       return;
     }
 
@@ -26,9 +32,9 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-  email: form.identifier, // reuse backend field
-  password: form.password
-})
+          email: form.identifier,
+          password: form.password
+        })
       });
 
       let data;
@@ -42,31 +48,32 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
         throw new Error(data.message || "Login failed");
       }
 
-      // 🔥 USE BACKEND USER DIRECTLY
-      const user = data.user;
-
-      if (!user || !user.userId) {
+      // ✅ SAFE USER CHECK
+      if (!data.user || !data.user.userId) {
         throw new Error("Invalid user data from server");
       }
 
-      // 🔥 STORE EVERYTHING
+      const user = data.user;
+
+      // ✅ STORE
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("userId", user.userId);
 
-      // 🔥 UPDATE STATE
+      // ✅ UPDATE STATE
       setUser(user);
       setLoggedIn(true);
 
-      // 🔥 GO TO PROFILE
-      if (setActiveTab) {
-        setActiveTab("profile");
-      }
+      // ✅ REDIRECT (guaranteed)
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
 
     } catch (err) {
       console.error("LOGIN ERROR:", err);
 
       if (err.message.includes("Failed to fetch")) {
-        setError("Server unreachable");
+        setError("Server unreachable / CORS issue");
       } else {
         setError(err.message);
       }
@@ -91,15 +98,15 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
 
           {error && <p className="auth-error">{error}</p>}
 
-          {/* EMAIL */}
+          {/* IDENTIFIER */}
           <input
-  className="auth-input"
-  placeholder="Email / Username / Phone"
-  value={form.identifier}
-  onChange={(e) =>
-    setForm({ ...form, identifier: e.target.value })
-  }
-/>
+            className="auth-input"
+            placeholder="Email / Username / Phone"
+            value={form.identifier}
+            onChange={(e) =>
+              setForm({ ...form, identifier: e.target.value })
+            }
+          />
 
           {/* PASSWORD */}
           <div style={{ position: "relative" }}>
@@ -140,7 +147,7 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
             Forgot Password?
           </div>
 
-          {/* LOGIN BUTTON */}
+          {/* LOGIN */}
           <button
             className="auth-button"
             onClick={login}
@@ -149,7 +156,7 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
             {loading ? "Logging in..." : "Log in"}
           </button>
 
-          {/* GOOGLE (placeholder) */}
+          {/* GOOGLE */}
           <button
             style={{
               marginTop: "10px",

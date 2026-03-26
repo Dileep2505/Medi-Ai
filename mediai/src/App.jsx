@@ -14,7 +14,7 @@ import { extractTextFromImage, extractTextFromPDF } from "./utils/ocr";
 import { Routes, Route } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
 
-/* ================= ROOT APP ================= */
+/* ================= ROOT ================= */
 
 function App() {
   return (
@@ -27,12 +27,11 @@ function App() {
   );
 }
 
-/* ================= MAIN APP ================= */
+/* ================= MAIN ================= */
 
 function MainApp() {
   const { activeTab, setActiveTab } = useApp();
 
-  const [loggedIn, setLoggedIn] = useState(false);
   const [authScreen, setAuthScreen] = useState("login");
 
   const [textReport, setTextReport] = useState("");
@@ -43,34 +42,30 @@ function MainApp() {
   });
   const [analyzing, setAnalyzing] = useState(false);
 
-  // 🔥 LOAD USER FROM LOCALSTORAGE (MAIN FIX)
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [user, setUser] = useState(null);
 
-  /* ================= AUTO LOGIN ================= */
+  /* ================= AUTO LOGIN (REAL FIX) ================= */
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
 
     if (token && savedUser) {
-      setLoggedIn(true);
       setUser(JSON.parse(savedUser));
+    } else {
+      setUser(null);
     }
   }, []);
 
   /* ================= LOGOUT ================= */
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setLoggedIn(false);
+    localStorage.clear();
+    setUser(null);
     setAuthScreen("login");
   };
 
-  /* ================= AI ANALYSIS ================= */
+  /* ================= AI ================= */
 
   const analyzeReports = async () => {
     setAnalyzing(true);
@@ -106,14 +101,13 @@ function MainApp() {
     }
   };
 
-  /* ================= AUTH UI ================= */
+  /* ================= AUTH FLOW ================= */
 
-  if (!loggedIn) {
+  if (!user) {
     if (authScreen === "login") {
       return (
         <Login
           setUser={setUser}
-          setLoggedIn={setLoggedIn}
           setAuthScreen={setAuthScreen}
           setActiveTab={setActiveTab}
         />
@@ -133,11 +127,11 @@ function MainApp() {
     if (authScreen === "forgot") {
       return <ForgotPassword setAuthScreen={setAuthScreen} />;
     }
-    
+
     return <Login setAuthScreen={setAuthScreen} />;
   }
 
-  /* ================= MAIN UI ================= */
+  /* ================= MAIN APP ================= */
 
   return (
     <div style={styles.watermarkBg}>

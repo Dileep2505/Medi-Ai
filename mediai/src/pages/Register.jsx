@@ -3,7 +3,12 @@ import "./Auth.css";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
-export default function Register({ setAuthScreen, setUser, setActiveTab, setLoggedIn }) {
+export default function Register({
+  setAuthScreen,
+  setUser,
+  setActiveTab,
+  setLoggedIn
+}) {
   const [form, setForm] = useState({
     fullName: "",
     username: "",
@@ -79,19 +84,21 @@ export default function Register({ setAuthScreen, setUser, setActiveTab, setLogg
     try {
       setLoading(true);
 
+      const payload = {
+        fullName: form.fullName.trim(),
+        username: form.username.trim().toLowerCase(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim(),
+        gender: form.gender,
+        password: form.password
+      };
+
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          fullName: form.fullName,
-          username: form.username,
-          email: form.email,
-          phone: form.phone,
-          gender: form.gender,
-          password: form.password
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -101,7 +108,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab, setLogg
         return;
       }
 
-      /* 🔥 AUTO LOGIN AFTER REGISTER */
+      /* 🔥 AUTO LOGIN */
 
       const user = data.user;
 
@@ -110,26 +117,25 @@ export default function Register({ setAuthScreen, setUser, setActiveTab, setLogg
         return;
       }
 
-      // 🔥 SAVE EVERYTHING
+      // 🔥 STORE EVERYTHING
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("userId", user.userId);
 
       if (data.token) {
         localStorage.setItem("token", data.token);
+      } else {
+        console.warn("⚠️ Token missing from backend response");
       }
-
-      localStorage.setItem("userId", user.userId);
 
       // 🔥 UPDATE STATE
       setUser(user);
-      if (setLoggedIn) setLoggedIn(true);
+      setLoggedIn(true);
 
       setSuccess("Account created successfully!");
 
-      // 🔥 REDIRECT TO APP
+      // 🔥 HARD REDIRECT (guaranteed fix)
       setTimeout(() => {
-        if (setActiveTab) {
-          setActiveTab("profile");
-        }
+        window.location.reload();
       }, 500);
 
     } catch (err) {
@@ -180,7 +186,9 @@ export default function Register({ setAuthScreen, setUser, setActiveTab, setLogg
           />
 
           {usernameStatus === "checking" && <p>Checking...</p>}
-          {usernameStatus === "available" && <p style={{ color: "green" }}>✔ Available</p>}
+          {usernameStatus === "available" && (
+            <p style={{ color: "green" }}>✔ Available</p>
+          )}
           {usernameStatus === "taken" && (
             <div>
               <p style={{ color: "red" }}>✖ Taken</p>
@@ -253,7 +261,11 @@ export default function Register({ setAuthScreen, setUser, setActiveTab, setLogg
             }
           />
 
-          <button className="auth-button" onClick={register} disabled={loading}>
+          <button
+            className="auth-button"
+            onClick={register}
+            disabled={loading}
+          >
             {loading ? "Creating..." : "Register"}
           </button>
 
