@@ -1,0 +1,253 @@
+import React, { useState, useRef } from "react";
+import "./Auth.css";
+
+const API_BASE = "https://medi-ai-backend-226z.onrender.com";
+
+export default function Register({ setAuthScreen, setUser, setActiveTab }) {
+  const [form, setForm] = useState({
+    fullName: "",
+    username: "",
+    email: "",
+    phone: "",
+    gender: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+
+  const debounceRef = useRef(null);
+
+  /* ================= USERNAME CHECK ================= */
+  const checkUsername = (value) => {
+    setUsernameStatus("checking");
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/auth/check-username/${value}`
+        );
+
+        if (!res.ok) {
+          setUsernameStatus(null);
+          return;
+        }
+
+        const data = await res.json();
+
+        if (data.available === true) {
+          setUsernameStatus("available");
+          setSuggestions([]);
+        } else {
+          setUsernameStatus("taken");
+          setSuggestions(data.suggestions || []);
+        }
+
+      } catch {
+        setUsernameStatus(null);
+      }
+    }, 500);
+  };
+
+  /* ================= REGISTER ================= */
+  const register = async () => {
+    setError("");
+    setSuccess("");
+
+    if (
+      !form.fullName ||
+      !form.username ||
+      !form.email ||
+      !form.phone ||
+      !form.gender ||
+      !form.password ||
+      !form.confirmPassword
+    ) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (usernameStatus !== "available") {
+      setError("Choose a valid username");
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(form)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Registration failed");
+        return;
+      }
+
+      /* 🔥 THIS IS THE FIX */
+
+      // 1. store full user
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // 2. update global state
+      if (setUser) setUser(data.user);
+
+      setSuccess("Account created!");
+
+      // 3. go directly to profile
+      setTimeout(() => {
+        if (setActiveTab) {
+          setActiveTab("profile");
+        } else {
+          setAuthScreen("login"); // fallback
+        }
+      }, 800);
+
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong");
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-left">
+        <h1>MediAi</h1>
+        <p>Create your account to start tracking your health insights.</p>
+      </div>
+
+      <div className="auth-right">
+        <div className="auth-card">
+          <h2>Create Account</h2>
+
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          {success && <p style={{ color: "green" }}>{success}</p>}
+
+          <input
+            className="auth-input"
+            placeholder="Full Name"
+            value={form.fullName}
+            onChange={(e) =>
+              setForm({ ...form, fullName: e.target.value })
+            }
+          />
+
+          <input
+            className="auth-input"
+            placeholder="Username"
+            value={form.username}
+            onChange={(e) => {
+              const value = e.target.value;
+              setForm({ ...form, username: value });
+
+              if (value.length > 2) {
+                checkUsername(value);
+              } else {
+                setUsernameStatus(null);
+                setSuggestions([]);
+              }
+            }}
+          />
+
+          {usernameStatus === "checking" && <p>Checking...</p>}
+          {usernameStatus === "available" && (
+            <p style={{ color: "green" }}>✔ Available</p>
+          )}
+          {usernameStatus === "taken" && (
+            <div>
+              <p style={{ color: "red" }}>✖ Taken</p>
+              {suggestions.map((s, i) => (
+                <span
+                  key={i}
+                  style={{ marginLeft: 8, cursor: "pointer", color: "blue" }}
+                  onClick={() => {
+                    setForm({ ...form, username: s });
+                    setUsernameStatus("available");
+                    setSuggestions([]);
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <input
+            className="auth-input"
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) =>
+              setForm({ ...form, email: e.target.value })
+            }
+          />
+
+          <input
+            className="auth-input"
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) =>
+              setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })
+            }
+          />
+
+          <select
+            className="auth-input"
+            value={form.gender}
+            onChange={(e) =>
+              setForm({ ...form, gender: e.target.value })
+            }
+          >
+            <option value="">Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+
+          <input
+            type="password"
+            className="auth-input"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) =>
+              setForm({ ...form, password: e.target.value })
+            }
+          />
+
+          <input
+            type="password"
+            className="auth-input"
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
+          />
+
+          <button className="auth-button" onClick={register}>
+            Register
+          </button>
+
+          <div className="auth-link">
+            Already have an account?{" "}
+            <span onClick={() => setAuthScreen("login")}>
+              Log in
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

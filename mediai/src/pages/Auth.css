@@ -1,0 +1,104 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #5c6bc0, #6a1985);
+}
+
+/* LEFT PANEL */
+.auth-left {
+  flex: 1;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 100px;
+  text-align: center;
+}
+
+.auth-left h1 {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+
+.auth-left p {
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* RIGHT CARD */
+.auth-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-card {
+  width: 200%;
+  max-width: 600px;
+  background: rgb(57, 186, 229);
+  padding: 70px;
+  border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+.auth-card h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #3f51b5;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  background: #5c6bc0;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.auth-button:hover {
+  background: #3f51b5;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.auth-link span {
+  color: #3f51b5;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+  }
+
+  .auth-left {
+    padding: 30px;
+  }
+}
