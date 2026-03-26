@@ -138,12 +138,21 @@ router.post("/login", async (req, res) => {
     let { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
+      return res.status(400).json({
+        message: "Email / Username / Phone and password required"
+      });
     }
 
-    email = normalizeEmail(email);
+    const input = email.trim().toLowerCase();
 
-    const user = await AuthUser.findOne({ email });
+    // 🔥 FIND BY MULTIPLE FIELDS
+    const user = await AuthUser.findOne({
+      $or: [
+        { email: input },
+        { username: input },
+        { phone: input }
+      ]
+    });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -169,6 +178,7 @@ router.post("/login", async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         phone: user.phone,
+        username: user.username,
         gender: user.gender,
         bloodGroup: user.bloodGroup || "",
         photo: user.photo || ""

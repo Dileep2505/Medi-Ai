@@ -27,10 +27,6 @@ const ReportsUpload = ({
         <button style={modeBtn} onClick={() => fileRef.current.click()}>
           ⬆ Upload File
         </button>
-
-        <button style={modeBtn}>
-          📷 Camera
-        </button>
       </div>
 
 

@@ -4,7 +4,7 @@ import "./Auth.css";
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
 export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTab }) {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +25,10 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+  email: form.identifier, // reuse backend field
+  password: form.password
+})
       });
 
       let data;
@@ -90,13 +93,13 @@ export default function Login({ setUser, setLoggedIn, setAuthScreen, setActiveTa
 
           {/* EMAIL */}
           <input
-            className="auth-input"
-            placeholder="Email address"
-            value={form.email}
-            onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
-            }
-          />
+  className="auth-input"
+  placeholder="Email / Username / Phone"
+  value={form.identifier}
+  onChange={(e) =>
+    setForm({ ...form, identifier: e.target.value })
+  }
+/>
 
           {/* PASSWORD */}
           <div style={{ position: "relative" }}>
