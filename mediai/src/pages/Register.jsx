@@ -3,7 +3,7 @@ import "./Auth.css";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
-export default function Register({ setAuthScreen, setUser, setActiveTab }) {
+export default function Register({ setAuthScreen, setUser, setActiveTab, setLoggedIn }) {
   const [form, setForm] = useState({
     fullName: "",
     username: "",
@@ -30,25 +30,18 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `${API_BASE}/api/auth/check-username/${value}`
-        );
-
-        if (!res.ok) {
-          setUsernameStatus(null);
-          return;
-        }
+        const res = await fetch(`${API_BASE}/api/auth/check-username/${value}`);
+        if (!res.ok) return;
 
         const data = await res.json();
 
-        if (data.available === true) {
+        if (data.available) {
           setUsernameStatus("available");
           setSuggestions([]);
         } else {
           setUsernameStatus("taken");
           setSuggestions(data.suggestions || []);
         }
-
       } catch {
         setUsernameStatus(null);
       }
@@ -86,21 +79,19 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
     try {
       setLoading(true);
 
-      const payload = {
-        fullName: form.fullName,
-        username: form.username,
-        email: form.email,
-        phone: form.phone,
-        gender: form.gender,
-        password: form.password
-      };
-
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          fullName: form.fullName,
+          username: form.username,
+          email: form.email,
+          phone: form.phone,
+          gender: form.gender,
+          password: form.password
+        })
       });
 
       const data = await res.json();
@@ -110,30 +101,36 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
         return;
       }
 
-      // 🔥 SAFE USER EXTRACTION
-      const user = data.user || data;
+      /* 🔥 AUTO LOGIN AFTER REGISTER */
+
+      const user = data.user;
 
       if (!user || !user.userId) {
-        setError("Invalid response from server");
+        setError("Invalid server response");
         return;
       }
 
-      // 🔥 STORE USER
+      // 🔥 SAVE EVERYTHING
       localStorage.setItem("user", JSON.stringify(user));
 
-      // 🔥 UPDATE GLOBAL STATE
-      if (setUser) setUser(user);
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
 
-      setSuccess("Account created!");
+      localStorage.setItem("userId", user.userId);
 
-      // 🔥 NAVIGATION
+      // 🔥 UPDATE STATE
+      setUser(user);
+      if (setLoggedIn) setLoggedIn(true);
+
+      setSuccess("Account created successfully!");
+
+      // 🔥 REDIRECT TO APP
       setTimeout(() => {
         if (setActiveTab) {
           setActiveTab("profile");
-        } else {
-          localStorage.setItem("user", JSON.stringify(data.user));
         }
-      }, 800);
+      }, 500);
 
     } catch (err) {
       console.error(err);
@@ -157,7 +154,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
           {error && <p style={{ color: "red" }}>{error}</p>}
           {success && <p style={{ color: "green" }}>{success}</p>}
 
-          {/* FULL NAME */}
           <input
             className="auth-input"
             placeholder="Full Name"
@@ -167,7 +163,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
-          {/* USERNAME */}
           <input
             className="auth-input"
             placeholder="Username"
@@ -176,9 +171,8 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
               const value = e.target.value.trim();
               setForm({ ...form, username: value });
 
-              if (value.length > 2) {
-                checkUsername(value);
-              } else {
+              if (value.length > 2) checkUsername(value);
+              else {
                 setUsernameStatus(null);
                 setSuggestions([]);
               }
@@ -186,9 +180,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
           />
 
           {usernameStatus === "checking" && <p>Checking...</p>}
-          {usernameStatus === "available" && (
-            <p style={{ color: "green" }}>✔ Available</p>
-          )}
+          {usernameStatus === "available" && <p style={{ color: "green" }}>✔ Available</p>}
           {usernameStatus === "taken" && (
             <div>
               <p style={{ color: "red" }}>✖ Taken</p>
@@ -208,7 +200,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             </div>
           )}
 
-          {/* EMAIL */}
           <input
             className="auth-input"
             placeholder="Email"
@@ -218,7 +209,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
-          {/* PHONE */}
           <input
             className="auth-input"
             placeholder="Phone"
@@ -231,7 +221,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
-          {/* GENDER */}
           <select
             className="auth-input"
             value={form.gender}
@@ -244,7 +233,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             <option value="female">Female</option>
           </select>
 
-          {/* PASSWORD */}
           <input
             type="password"
             className="auth-input"
@@ -255,7 +243,6 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
-          {/* CONFIRM PASSWORD */}
           <input
             type="password"
             className="auth-input"
@@ -266,11 +253,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
-          <button
-            className="auth-button"
-            onClick={register}
-            disabled={loading}
-          >
+          <button className="auth-button" onClick={register} disabled={loading}>
             {loading ? "Creating..." : "Register"}
           </button>
 

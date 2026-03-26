@@ -139,20 +139,29 @@ router.post("/login", async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        message: "Email / Username / Phone and password required"
+        message: "Email / Username / Phone required"
       });
     }
 
-    const input = email.trim().toLowerCase();
+    const input = email.trim();
 
-    // 🔥 FIND BY MULTIPLE FIELDS
-    const user = await AuthUser.findOne({
-      $or: [
-        { email: input },
-        { username: input },
-        { phone: input }
-      ]
-    });
+    let user;
+
+    // 🔥 DETECT INPUT TYPE
+    if (/^\d{10,15}$/.test(input)) {
+      // PHONE
+      user = await AuthUser.findOne({ phone: input });
+    } else if (input.includes("@")) {
+      // EMAIL
+      user = await AuthUser.findOne({
+        email: input.toLowerCase()
+      });
+    } else {
+      // USERNAME
+      user = await AuthUser.findOne({
+        username: input.toLowerCase()
+      });
+    }
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -173,16 +182,7 @@ router.post("/login", async (req, res) => {
     return res.json({
       message: "Login successful",
       token,
-      user: {
-        userId: user.userId,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        username: user.username,
-        gender: user.gender,
-        bloodGroup: user.bloodGroup || "",
-        photo: user.photo || ""
-      }
+      user
     });
 
   } catch (err) {
