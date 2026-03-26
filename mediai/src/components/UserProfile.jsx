@@ -11,25 +11,27 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
   const [form, setForm] = useState({
     userId: "",
     fullName: "",
-    email: "", // ✅ FIX
+    email: "",
     gender: "",
     bloodGroup: "",
     phone: "",
     photo: ""
   });
 
-  /* SYNC USER */
+  /* ✅ SYNC USER ONLY WHEN NOT EDITING */
   useEffect(() => {
-    setForm({
-      userId: user?.userId || "",
-      fullName: user?.fullName || "",
-      email: user?.email || "", // ✅ FIX
-      gender: user?.gender || "",
-      bloodGroup: user?.bloodGroup || "",
-      phone: user?.phone || "",
-      photo: user?.photo || ""
-    });
-  }, [user]);
+    if (!editMode) {
+      setForm({
+        userId: user?.userId || "",
+        fullName: user?.fullName || "",
+        email: user?.email || "",
+        gender: user?.gender || "",
+        bloodGroup: user?.bloodGroup || "",
+        phone: user?.phone || "",
+        photo: user?.photo || ""
+      });
+    }
+  }, [user, editMode]);
 
   const closeProfile = () => {
     if (!editMode) setActiveTab("upload");
@@ -41,18 +43,17 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
   const handlePhoto = (e) => {
     if (!e.target.files[0]) return;
     const reader = new FileReader();
-    reader.onloadend = () => setForm({ ...form, photo: reader.result });
+    reader.onloadend = () =>
+      setForm({ ...form, photo: reader.result });
     reader.readAsDataURL(e.target.files[0]);
   };
 
-  /* SAVE PROFILE */
+  /* ================= SAVE PROFILE ================= */
   const saveProfile = async () => {
     try {
       const res = await fetch(`${API}/api/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-
-        // ✅ FIX — SEND EMAIL
         body: JSON.stringify({
           ...form,
           email: form.email || user.email
@@ -68,15 +69,19 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
       const updatedUser = data.user || data;
 
-      // ✅ FIX — UPDATE STATE
-      setUser(updatedUser);
+      /* ✅ MERGE OLD + NEW (CRITICAL FIX) */
+      const finalUser = {
+        ...user,
+        ...updatedUser
+      };
 
-      // ✅ FIX — SAVE STORAGE
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(finalUser);
+      localStorage.setItem("user", JSON.stringify(finalUser));
 
       setEditMode(false);
 
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Server error");
     }
   };
@@ -87,7 +92,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* HEADER */}
         <div style={header}>
-          <h3>profile</h3>
+          <h3>Profile</h3>
           <span style={closeBtn} onClick={closeProfile}>✕</span>
         </div>
 
@@ -119,7 +124,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* INFO */}
         <div style={info}>
-          <p><b>Email:</b> {user.email || "-"}</p>
+          <p><b>Email:</b> {form.email || "-"}</p>
           <p><b>Phone:</b> {form.phone || "-"}</p>
           <p><b>Gender:</b> {form.gender || "-"}</p>
           <p><b>Blood Group:</b> {form.bloodGroup || "-"}</p>
@@ -128,12 +133,47 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
         {/* EDIT MODE */}
         {editMode && (
           <>
-            <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Name" style={input}/>
-            <input name="email" value={form.email} onChange={handleChange} placeholder="Email" style={input}/> {/* ✅ FIX */}
-            <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" style={input}/>
-            <input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="Blood Group" style={input}/>
-            <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" style={input}/>
-            <input type="file" onChange={handlePhoto}/>
+            <input
+              name="fullName"
+              value={form.fullName}
+              onChange={handleChange}
+              placeholder="Name"
+              style={input}
+            />
+
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email"
+              style={input}
+            />
+
+            <input
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
+              placeholder="Gender"
+              style={input}
+            />
+
+            <input
+              name="bloodGroup"
+              value={form.bloodGroup}
+              onChange={handleChange}
+              placeholder="Blood Group"
+              style={input}
+            />
+
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="Phone"
+              style={input}
+            />
+
+            <input type="file" onChange={handlePhoto} />
           </>
         )}
 
@@ -141,10 +181,14 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
         {editMode ? (
           <button style={btn} onClick={saveProfile}>Save</button>
         ) : (
-          <button style={btn} onClick={() => setEditMode(true)}>Edit profile</button>
+          <button style={btn} onClick={() => setEditMode(true)}>
+            Edit Profile
+          </button>
         )}
 
-        <button style={logoutBtn} onClick={onLogout}>Logout</button>
+        <button style={logoutBtn} onClick={onLogout}>
+          Logout
+        </button>
 
       </div>
     </div>

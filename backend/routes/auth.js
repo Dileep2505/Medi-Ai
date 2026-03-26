@@ -11,19 +11,21 @@ const router = express.Router();
 const normalizeEmail = (email) => email.trim().toLowerCase();
 const normalizeUsername = (username) => username.trim().toLowerCase();
 
+/* ================= USERNAME VALIDATION ================= */
+// 3 letters + special + 3-4 numbers
+const usernameRegex = /^[a-zA-Z]{3}[_\-.][0-9]{3,4}$/;
+
 /* ================= CHECK USERNAME ================= */
 router.get("/check-username/:username", async (req, res) => {
   try {
-    let username = req.params.username;
+    let username = normalizeUsername(req.params.username);
 
-    if (!username || username.length < 3) {
+    if (!usernameRegex.test(username)) {
       return res.status(400).json({
         available: false,
-        message: "Username too short"
+        message: "Invalid username format"
       });
     }
-
-    username = normalizeUsername(username);
 
     const exists = await AuthUser.findOne({ username });
 
@@ -31,51 +33,39 @@ router.get("/check-username/:username", async (req, res) => {
       return res.json({ available: true });
     }
 
-    const suggestions = [
-      username + Math.floor(Math.random() * 1000),
-      username + "_123",
-      username + "_official"
-    ];
-
     return res.json({
       available: false,
-      suggestions
+      suggestions: [
+        username + Math.floor(Math.random() * 1000),
+        username + "_123",
+        username + "-456"
+      ]
     });
 
   } catch (err) {
     console.error("USERNAME CHECK ERROR:", err);
-    return res.status(500).json({
-      available: false,
-      message: "Server error"
-    });
+    res.status(500).json({ available: false });
   }
 });
 
 /* ================= REGISTER ================= */
 router.post("/register", async (req, res) => {
   try {
-    let {
-      fullName,
-      username,
-      email,
-      phone,
-      gender,
-      password
-    } = req.body;
+    let { fullName, username, email, phone, gender, password } = req.body;
 
-    if (
-      !fullName ||
-      !username ||
-      !email ||
-      !phone ||
-      !gender ||
-      !password
-    ) {
+    if (!fullName || !username || !email || !phone || !gender || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     email = normalizeEmail(email);
     username = normalizeUsername(username);
+
+    // 🔥 VALIDATIONS
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({
+        message: "Username must be like abc_123"
+      });
+    }
 
     if (!/^\d{10,15}$/.test(phone)) {
       return res.status(400).json({
@@ -83,39 +73,55 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    const emailExists = await AuthUser.findOne({ email });
-    if (emailExists) {
+    // 🔥 CHECKS
+    if (await AuthUser.findOne({ email })) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const usernameExists = await AuthUser.findOne({ username });
-    if (usernameExists) {
+    if (await AuthUser.findOne({ username })) {
       return res.status(400).json({ message: "Username already taken" });
     }
 
+    if (await AuthUser.findOne({ phone })) {
+      return res.status(400).json({ message: "Phone already used" });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
-    const userId = "USR-" + crypto.randomBytes(4).toString("hex");
+
+    // 🔥 CUSTOM USER ID (your rule)
+    const letters = crypto.randomBytes(2).toString("hex").slice(0, 4);
+    const numbers = Math.floor(1000 + Math.random() * 9000);
+    const userId = `${letters}_${numbers}`;
 
     const newUser = await AuthUser.create({
+      userId,
       fullName,
       username,
       email,
       phone,
       gender,
-      password: hashed,
-      userId
+      password: hashed
     });
+
+    // 🔥 AUTO LOGIN TOKEN
+    const token = jwt.sign(
+      { userId: newUser.userId },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     return res.status(201).json({
       message: "Registered successfully",
+      token,
       user: {
         userId: newUser.userId,
         fullName: newUser.fullName,
+        username: newUser.username,
         email: newUser.email,
         phone: newUser.phone,
         gender: newUser.gender,
-        bloodGroup: newUser.bloodGroup || "",
-        photo: newUser.photo || ""
+        bloodGroup: "",
+        photo: ""
       }
     });
 
@@ -124,43 +130,35 @@ router.post("/register", async (req, res) => {
 
     if (err.code === 11000) {
       return res.status(400).json({
-        message: "Username or email already exists"
+        message: "Duplicate field error"
       });
     }
 
-    return res.status(500).json({ message: "Registration failed" });
+    res.status(500).json({ message: "Registration failed" });
   }
 });
 
 /* ================= LOGIN ================= */
 router.post("/login", async (req, res) => {
   try {
-    let { email, password } = req.body;
+    let { identifier, password } = req.body;
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return res.status(400).json({
         message: "Email / Username / Phone required"
       });
     }
 
-    const input = email.trim();
-
+    const input = identifier.trim();
     let user;
 
-    // 🔥 DETECT INPUT TYPE
+    // 🔥 DETECT TYPE
     if (/^\d{10,15}$/.test(input)) {
-      // PHONE
       user = await AuthUser.findOne({ phone: input });
     } else if (input.includes("@")) {
-      // EMAIL
-      user = await AuthUser.findOne({
-        email: input.toLowerCase()
-      });
+      user = await AuthUser.findOne({ email: normalizeEmail(input) });
     } else {
-      // USERNAME
-      user = await AuthUser.findOne({
-        username: input.toLowerCase()
-      });
+      user = await AuthUser.findOne({ username: normalizeUsername(input) });
     }
 
     if (!user) {
@@ -168,7 +166,6 @@ router.post("/login", async (req, res) => {
     }
 
     const match = await bcrypt.compare(password, user.password);
-
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -182,12 +179,21 @@ router.post("/login", async (req, res) => {
     return res.json({
       message: "Login successful",
       token,
-      user
+      user: {
+        userId: user.userId,
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        gender: user.gender,
+        bloodGroup: user.bloodGroup || "",
+        photo: user.photo || ""
+      }
     });
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    return res.status(500).json({ message: "Login failed" });
+    res.status(500).json({ message: "Login failed" });
   }
 });
 
@@ -202,10 +208,7 @@ router.post("/forgot-password", async (req, res) => {
 
     email = normalizeEmail(email);
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
     const user = await AuthUser.findOne({ email });
-
     if (!user) {
       return res.json({ message: "If email exists, reset sent" });
     }
@@ -216,20 +219,20 @@ router.post("/forgot-password", async (req, res) => {
     user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const resetLink = `https://mediai.indevs.in/reset/${token}`;
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
       from: "no-reply@mediai.indevs.in",
       to: email,
       subject: "Reset your password",
-      html: `<a href="${resetLink}">${resetLink}</a>`
+      html: `<a href="https://mediai.indevs.in/reset/${token}">Reset Password</a>`
     });
 
-    return res.json({ message: "Reset link sent" });
+    res.json({ message: "Reset link sent" });
 
   } catch (err) {
     console.error("FORGOT ERROR:", err);
-    return res.status(500).json({ message: "Reset failed" });
+    res.status(500).json({ message: "Reset failed" });
   }
 });
 
@@ -237,10 +240,6 @@ router.post("/forgot-password", async (req, res) => {
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { password } = req.body;
-
-    if (!password) {
-      return res.status(400).json({ message: "Password required" });
-    }
 
     const user = await AuthUser.findOne({
       resetToken: req.params.token,
@@ -257,11 +256,11 @@ router.post("/reset-password/:token", async (req, res) => {
 
     await user.save();
 
-    return res.json({ message: "Password updated" });
+    res.json({ message: "Password updated" });
 
   } catch (err) {
     console.error("RESET ERROR:", err);
-    return res.status(500).json({ message: "Password reset failed" });
+    res.status(500).json({ message: "Reset failed" });
   }
 });
 
