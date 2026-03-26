@@ -17,7 +17,7 @@ export default function Login({
   const login = async () => {
     setError("");
 
-    // ✅ FIXED
+    // ✅ VALIDATION FIXED
     if (!form.identifier || !form.password) {
       setError("Enter email / username / phone and password");
       return;
@@ -31,8 +31,10 @@ export default function Login({
         headers: {
           "Content-Type": "application/json"
         },
+
+        // 🔥 FIXED HERE (MOST IMPORTANT)
         body: JSON.stringify({
-          email: form.identifier,
+          identifier: form.identifier,
           password: form.password
         })
       });
@@ -48,14 +50,14 @@ export default function Login({
         throw new Error(data.message || "Login failed");
       }
 
-      // ✅ SAFE USER CHECK
+      // ✅ SAFETY CHECK
       if (!data.user || !data.user.userId) {
         throw new Error("Invalid user data from server");
       }
 
       const user = data.user;
 
-      // ✅ STORE
+      // ✅ STORE DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("userId", user.userId);
@@ -64,10 +66,10 @@ export default function Login({
       setUser(user);
       setLoggedIn(true);
 
-      // ✅ REDIRECT (guaranteed)
-      setTimeout(() => {
-        window.location.reload();
-      }, 200);
+      // 🔥 CLEAN REDIRECT (NO RELOAD NEEDED)
+      if (setActiveTab) {
+        setActiveTab("profile");
+      }
 
     } catch (err) {
       console.error("LOGIN ERROR:", err);
