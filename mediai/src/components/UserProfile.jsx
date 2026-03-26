@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 
+const API = "https://medi-ai-backend-226z.onrender.com";
+
 const UserProfile = ({ user = {}, setUser, onLogout }) => {
   const { setActiveTab } = useApp();
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
     userId: "",
-    name: "",
+    fullName: "",
     gender: "",
     bloodGroup: "",
     phone: "",
     photo: ""
   });
 
-  const [pwd, setPwd] = useState({ oldPassword: "", newPassword: "" });
-  const [pwdMsg, setPwdMsg] = useState("");
-
-  /* Sync user → form */
+  /* SYNC USER */
   useEffect(() => {
     setForm({
       userId: user?.userId || "",
-      name: user?.name || "",
+      fullName: user?.fullName || "",
       gender: user?.gender || "",
       bloodGroup: user?.bloodGroup || "",
       phone: user?.phone || "",
@@ -29,7 +28,6 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
     });
   }, [user]);
 
-  /* Close overlay */
   const closeProfile = () => {
     if (!editMode) setActiveTab("upload");
   };
@@ -45,64 +43,26 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
   };
 
   /* SAVE PROFILE */
-  const saveProfile = async (e) => {
-    e.stopPropagation();
-
+  const saveProfile = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/user", {
+      const res = await fetch(`${API}/api/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       });
 
-      const data = await response.json();
-
-      if (!data.userId) {
-        alert("Backend did not return userId");
-        return;
-      }
-
-      setUser(data);
-      localStorage.setItem("userId", data.userId);
-      setEditMode(false);
-      alert("Profile Saved");
-
-    } catch (err) {
-      console.error(err);
-      alert("Backend connection failed");
-    }
-  };
-
-  /* CHANGE PASSWORD */
-  const changePassword = async () => {
-    if (!pwd.oldPassword || !pwd.newPassword) {
-      setPwdMsg("Fill both fields");
-      return;
-    }
-
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: form.userId,
-          oldPassword: pwd.oldPassword,
-          newPassword: pwd.newPassword
-        })
-      });
-
       const data = await res.json();
 
       if (!res.ok) {
-        setPwdMsg(data.message);
+        alert(data.message);
         return;
       }
 
-      setPwdMsg("Password updated");
-      setPwd({ oldPassword: "", newPassword: "" });
+      localStorage.setItem("user", JSON.stringify(data.user || data));
+      setEditMode(false);
 
-    } catch (err) {
-      setPwdMsg("Server error");
+    } catch {
+      alert("Server error");
     }
   };
 
@@ -110,92 +70,143 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
     <div style={overlay} onClick={closeProfile}>
       <div style={card} onClick={(e) => e.stopPropagation()}>
 
-        <div style={topRow}>
-          <div style={avatar}>
-            {form.photo ? (
-              <img src={form.photo} alt="" style={avatarImg} />
-            ) : (
-              form.name?.charAt(0).toUpperCase() || "U"
-            )}
-          </div>
-          <div style={{ flex: 1 }}>
-            <h2 style={nameText}>{form.name || "New User"}</h2>
-            <p style={idText}>User ID: {form.userId || "Not assigned"}</p>
-          </div>
+        {/* HEADER */}
+        <div style={header}>
+          <h3>profile</h3>
+          <span style={closeBtn} onClick={closeProfile}>✕</span>
         </div>
 
-        <div style={infoGrid}>
-          <Info label="Gender" value={form.gender} />
-          <Info label="Blood Group" value={form.bloodGroup} />
-          <Info label="Phone" value={form.phone} />
+        {/* AVATAR */}
+        <div style={avatarWrap}>
+  <label style={avatarCircle}>
+    {form.photo ? (
+      <img src={form.photo} alt="" style={avatarImg} />
+    ) : (
+      form.fullName?.charAt(0).toUpperCase() || "👤"
+    )}
+
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handlePhoto}
+      style={{ display: "none" }}
+    />
+  </label>
+</div>
+
+        {/* NAME + ID */}
+        <div style={{ textAlign: "center" }}>
+          <h2>{form.fullName || "User Name"}</h2>
+          <p style={{ color: "#666" }}>{form.userId || "User ID"}</p>
         </div>
 
+        <hr />
+
+        {/* INFO */}
+        <div style={info}>
+          <p><b>Email:</b> {user.email || "-"}</p>
+          <p><b>Phone:</b> {form.phone || "-"}</p>
+          <p><b>Gender:</b> {form.gender || "-"}</p>
+          <p><b>Blood Group:</b> {form.bloodGroup || "-"}</p>
+        </div>
+
+        {/* EDIT MODE */}
         {editMode && (
           <>
-            <input name="name" value={form.name} onChange={handleChange} placeholder="Name" style={input}/>
+            <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Name" style={input}/>
             <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" style={input}/>
             <input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="Blood Group" style={input}/>
             <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" style={input}/>
-            <input type="file" accept="image/*" onChange={handlePhoto} style={{ marginBottom: 10 }}/>
+            <input type="file" onChange={handlePhoto}/>
           </>
         )}
 
+        {/* ACTIONS */}
         {editMode ? (
-          <button style={saveBtn} onClick={saveProfile}>Save</button>
+          <button style={btn} onClick={saveProfile}>Save</button>
         ) : (
-          <button style={editBtn} onClick={() => setEditMode(true)}>Edit Profile</button>
+          <button style={btn} onClick={() => setEditMode(true)}>Edit profile</button>
         )}
 
         <button style={logoutBtn} onClick={onLogout}>Logout</button>
 
-        {/* PASSWORD SECTION */}
-        <hr style={{ margin: "16px 0" }} />
-        <h3>Change Password</h3>
-
-        <input
-          type="password"
-          placeholder="Old Password"
-          value={pwd.oldPassword}
-          onChange={e => setPwd({ ...pwd, oldPassword: e.target.value })}
-          style={input}
-        />
-
-        <input
-          type="password"
-          placeholder="New Password"
-          value={pwd.newPassword}
-          onChange={e => setPwd({ ...pwd, newPassword: e.target.value })}
-          style={input}
-        />
-
-        <button style={saveBtn} onClick={changePassword}>Update Password</button>
-
-        {pwdMsg && <p style={{ color: "red", marginTop: 8 }}>{pwdMsg}</p>}
       </div>
     </div>
   );
 };
 
-const Info = ({ label, value }) => (
-  <div style={infoBox}>
-    <strong>{label}</strong>
-    <p style={{ margin: 0 }}>{value || "-"}</p>
-  </div>
-);
-
 export default UserProfile;
 
 /* STYLES */
-const overlay = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", padding: 10, zIndex: 9999 };
-const card = { background: "#fff", borderRadius: 14, padding: 18, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0,0,0,0.3)" };
-const topRow = { display: "flex", alignItems: "center", gap: 12, marginBottom: 16 };
-const avatar = { width: 55, height: 55, borderRadius: "50%", overflow: "hidden", background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "bold", fontSize: 20 };
-const avatarImg = { width: "100%", height: "100%", objectFit: "cover" };
-const nameText = { margin: 0, fontSize: 18 };
-const idText = { margin: 0, color: "#666", fontSize: 13 };
-const infoGrid = { display: "grid", gap: 10, marginBottom: 14 };
-const infoBox = { background: "#f1f5f9", padding: 10, borderRadius: 8 };
-const input = { width: "100%", padding: 9, marginBottom: 8, borderRadius: 6, border: "1px solid #ccc" };
-const editBtn = { width: "100%", padding: 11, borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", fontWeight: "bold" };
-const saveBtn = { ...editBtn, background: "#16a34a" };
-const logoutBtn = { width: "100%", padding: 11, borderRadius: 8, border: "none", background: "#dc2626", color: "#fff", fontWeight: "bold", marginTop: 8 };
+
+const overlay = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  padding: 20
+};
+
+const card = {
+  width: 320,
+  background: "#fff",
+  borderRadius: 30,
+  padding: 20
+};
+
+const header = {
+  display: "flex",
+  justifyContent: "space-between"
+};
+
+const closeBtn = {
+  cursor: "pointer",
+  fontSize: 20
+};
+
+const avatarWrap = {
+  display: "flex",
+  justifyContent: "center",
+  margin: 20
+};
+
+const avatarCircle = {
+  width: 80,
+  height: 80,
+  borderRadius: "50%",
+  border: "2px solid black",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 24,
+  cursor: "pointer" // 🔥 add this
+};
+
+const avatarImg = {
+  width: "100%",
+  height: "100%",
+  borderRadius: "50%",
+  objectFit: "cover"
+};
+
+const info = {
+  lineHeight: "28px"
+};
+
+const input = {
+  width: "100%",
+  margin: "5px 0",
+  padding: 8
+};
+
+const btn = {
+  width: "100%",
+  padding: 10,
+  marginTop: 10,
+  cursor: "pointer"
+};
+
+const logoutBtn = {
+  ...btn,
+  background: "red",
+  color: "#fff"
+};

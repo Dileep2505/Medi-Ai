@@ -4,37 +4,65 @@ import { nanoid } from "nanoid";
 
 const router = express.Router();
 
-/* GET PROFILE */
+/* ================= GET PROFILE ================= */
 router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId });
-    res.json(user || {});
+
+    if (!user) return res.json({});
+
+    res.json({
+      userId: user.userId,
+      fullName: user.fullName,
+      gender: user.gender,
+      bloodGroup: user.bloodGroup || "",
+      phone: user.phone || "",
+      photo: user.photo || ""
+    });
+
   } catch (err) {
     res.status(500).json({ message: "Fetch failed" });
   }
 });
 
-/* CREATE OR UPDATE PROFILE */
+/* ================= CREATE / UPDATE PROFILE ================= */
 router.post("/", async (req, res) => {
   try {
-    let { userId, name, gender, bloodGroup, phone, photo } = req.body;
+    let { userId, fullName, gender, bloodGroup, phone, photo } = req.body;
 
     if (!userId) userId = "USR-" + nanoid(6);
 
     let user = await User.findOne({ userId });
 
     if (user) {
-      user.name = name;
+      // 🔥 FIXED
+      user.fullName = fullName;
       user.gender = gender;
       user.bloodGroup = bloodGroup;
       user.phone = phone;
       user.photo = photo;
     } else {
-      user = new User({ userId, name, gender, bloodGroup, phone, photo });
+      user = new User({
+        userId,
+        fullName,
+        gender,
+        bloodGroup,
+        phone,
+        photo
+      });
     }
 
     await user.save();
-    res.json(user);
+
+    // 🔥 RETURN CLEAN USER
+    res.json({
+      userId: user.userId,
+      fullName: user.fullName,
+      gender: user.gender,
+      bloodGroup: user.bloodGroup || "",
+      phone: user.phone || "",
+      photo: user.photo || ""
+    });
 
   } catch (err) {
     console.error("User save error:", err);

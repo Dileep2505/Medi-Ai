@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Login from "./pages/login";
 import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword"; // ✅ ADD THIS
+import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Header from "./components/Header";
 import Navigation from "./components/Navigation";
@@ -13,8 +13,6 @@ import { analyzeHealthDataAI } from "./services/aiHealthAnalyzer";
 import { extractTextFromImage, extractTextFromPDF } from "./utils/ocr";
 import { Routes, Route } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
-
-const API_BASE = "https://medi-ai-backend-226z.onrender.com"; // ✅ FIX
 
 /* ================= ROOT APP ================= */
 
@@ -45,29 +43,21 @@ function MainApp() {
   });
   const [analyzing, setAnalyzing] = useState(false);
 
-  const [user, setUser] = useState({
-    userId: "",
-    name: "",
-    gender: "",
-    bloodGroup: "",
-    phone: "",
-    photo: ""
+  // 🔥 LOAD USER FROM LOCALSTORAGE (MAIN FIX)
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : {};
   });
 
   /* ================= AUTO LOGIN ================= */
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const id = localStorage.getItem("userId");
+    const savedUser = localStorage.getItem("user");
 
-    if (token && id) {
+    if (token && savedUser) {
       setLoggedIn(true);
-
-      // ✅ FIXED (NO localhost)
-      fetch(`${API_BASE}/api/user/${id}`)
-        .then(res => res.json())
-        .then(data => setUser(data))
-        .catch(err => console.error("User fetch error:", err));
+      setUser(JSON.parse(savedUser));
     }
   }, []);
 
@@ -75,7 +65,7 @@ function MainApp() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    localStorage.removeItem("user");
     setLoggedIn(false);
     setAuthScreen("login");
   };
@@ -125,19 +115,25 @@ function MainApp() {
           setUser={setUser}
           setLoggedIn={setLoggedIn}
           setAuthScreen={setAuthScreen}
+          setActiveTab={setActiveTab}
         />
       );
     }
 
     if (authScreen === "register") {
-      return <Register setAuthScreen={setAuthScreen} />;
+      return (
+        <Register
+          setAuthScreen={setAuthScreen}
+          setUser={setUser}
+          setActiveTab={setActiveTab}
+        />
+      );
     }
 
     if (authScreen === "forgot") {
       return <ForgotPassword setAuthScreen={setAuthScreen} />;
     }
-
-    // fallback
+    
     return <Login setAuthScreen={setAuthScreen} />;
   }
 

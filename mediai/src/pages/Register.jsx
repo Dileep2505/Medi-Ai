@@ -16,6 +16,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
 
@@ -83,12 +84,23 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
     }
 
     try {
+      setLoading(true);
+
+      const payload = {
+        fullName: form.fullName,
+        username: form.username,
+        email: form.email,
+        phone: form.phone,
+        gender: form.gender,
+        password: form.password
+      };
+
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -98,28 +110,36 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
         return;
       }
 
-      /* 🔥 THIS IS THE FIX */
+      // 🔥 SAFE USER EXTRACTION
+      const user = data.user || data;
 
-      // 1. store full user
-      localStorage.setItem("user", JSON.stringify(data.user));
+      if (!user || !user.userId) {
+        setError("Invalid response from server");
+        return;
+      }
 
-      // 2. update global state
-      if (setUser) setUser(data.user);
+      // 🔥 STORE USER
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // 🔥 UPDATE GLOBAL STATE
+      if (setUser) setUser(user);
 
       setSuccess("Account created!");
 
-      // 3. go directly to profile
+      // 🔥 NAVIGATION
       setTimeout(() => {
         if (setActiveTab) {
           setActiveTab("profile");
         } else {
-          setAuthScreen("login"); // fallback
+          localStorage.setItem("user", JSON.stringify(data.user));
         }
       }, 800);
 
     } catch (err) {
       console.error(err);
-      setError("Something went wrong");
+      setError("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -137,6 +157,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
           {error && <p style={{ color: "red" }}>{error}</p>}
           {success && <p style={{ color: "green" }}>{success}</p>}
 
+          {/* FULL NAME */}
           <input
             className="auth-input"
             placeholder="Full Name"
@@ -146,12 +167,13 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
+          {/* USERNAME */}
           <input
             className="auth-input"
             placeholder="Username"
             value={form.username}
             onChange={(e) => {
-              const value = e.target.value;
+              const value = e.target.value.trim();
               setForm({ ...form, username: value });
 
               if (value.length > 2) {
@@ -186,6 +208,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             </div>
           )}
 
+          {/* EMAIL */}
           <input
             className="auth-input"
             placeholder="Email"
@@ -195,15 +218,20 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
+          {/* PHONE */}
           <input
             className="auth-input"
             placeholder="Phone"
             value={form.phone}
             onChange={(e) =>
-              setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })
+              setForm({
+                ...form,
+                phone: e.target.value.replace(/\D/g, "")
+              })
             }
           />
 
+          {/* GENDER */}
           <select
             className="auth-input"
             value={form.gender}
@@ -216,6 +244,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             <option value="female">Female</option>
           </select>
 
+          {/* PASSWORD */}
           <input
             type="password"
             className="auth-input"
@@ -226,6 +255,7 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
+          {/* CONFIRM PASSWORD */}
           <input
             type="password"
             className="auth-input"
@@ -236,8 +266,12 @@ export default function Register({ setAuthScreen, setUser, setActiveTab }) {
             }
           />
 
-          <button className="auth-button" onClick={register}>
-            Register
+          <button
+            className="auth-button"
+            onClick={register}
+            disabled={loading}
+          >
+            {loading ? "Creating..." : "Register"}
           </button>
 
           <div className="auth-link">

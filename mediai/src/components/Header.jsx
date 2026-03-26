@@ -36,7 +36,7 @@ const Header = ({ user = {} }) => {
           {user?.name || "User"}
         </span>
         <div style={styles.avatar}>
-          {user?.name?.charAt(0)?.toUpperCase() || "U"}
+          {user?.name?.charAt(0)?.toUpperCase() || "👤"}
         </div>
       </div>
     </header>
