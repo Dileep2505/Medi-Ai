@@ -7,9 +7,11 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
   const { setActiveTab } = useApp();
 
   const [editMode, setEditMode] = useState(false);
+
   const [form, setForm] = useState({
     userId: "",
     fullName: "",
+    email: "", // ✅ FIX
     gender: "",
     bloodGroup: "",
     phone: "",
@@ -21,6 +23,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
     setForm({
       userId: user?.userId || "",
       fullName: user?.fullName || "",
+      email: user?.email || "", // ✅ FIX
       gender: user?.gender || "",
       bloodGroup: user?.bloodGroup || "",
       phone: user?.phone || "",
@@ -48,7 +51,12 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
       const res = await fetch(`${API}/api/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+
+        // ✅ FIX — SEND EMAIL
+        body: JSON.stringify({
+          ...form,
+          email: form.email || user.email
+        })
       });
 
       const data = await res.json();
@@ -58,7 +66,14 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(data.user || data));
+      const updatedUser = data.user || data;
+
+      // ✅ FIX — UPDATE STATE
+      setUser(updatedUser);
+
+      // ✅ FIX — SAVE STORAGE
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
       setEditMode(false);
 
     } catch {
@@ -67,8 +82,8 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
   };
 
   return (
-    <div style={overlay} onClick={closeProfile}>
-      <div style={card} onClick={(e) => e.stopPropagation()}>
+    <div style={overlay}>
+      <div style={card}>
 
         {/* HEADER */}
         <div style={header}>
@@ -78,21 +93,21 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* AVATAR */}
         <div style={avatarWrap}>
-  <label style={avatarCircle}>
-    {form.photo ? (
-      <img src={form.photo} alt="" style={avatarImg} />
-    ) : (
-      form.fullName?.charAt(0).toUpperCase() || "👤"
-    )}
+          <label style={avatarCircle}>
+            {form.photo ? (
+              <img src={form.photo} alt="" style={avatarImg} />
+            ) : (
+              form.fullName?.charAt(0).toUpperCase() || "👤"
+            )}
 
-    <input
-      type="file"
-      accept="image/*"
-      onChange={handlePhoto}
-      style={{ display: "none" }}
-    />
-  </label>
-</div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhoto}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
 
         {/* NAME + ID */}
         <div style={{ textAlign: "center" }}>
@@ -104,7 +119,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* INFO */}
         <div style={info}>
-          <p><b>Email:</b> {user.email || "-"}</p>
+          <p><b>Email:</b> {form.email || "-"}</p> {/* ✅ FIX */}
           <p><b>Phone:</b> {form.phone || "-"}</p>
           <p><b>Gender:</b> {form.gender || "-"}</p>
           <p><b>Blood Group:</b> {form.bloodGroup || "-"}</p>
@@ -114,6 +129,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
         {editMode && (
           <>
             <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Name" style={input}/>
+            <input name="email" value={form.email} onChange={handleChange} placeholder="Email" style={input}/> {/* ✅ FIX */}
             <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" style={input}/>
             <input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="Blood Group" style={input}/>
             <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" style={input}/>
@@ -178,7 +194,7 @@ const avatarCircle = {
   alignItems: "center",
   justifyContent: "center",
   fontSize: 24,
-  cursor: "pointer" // 🔥 add this
+  cursor: "pointer"
 };
 
 const avatarImg = {

@@ -12,13 +12,14 @@ router.get("/:userId", async (req, res) => {
     if (!user) return res.json({});
 
     res.json({
-      userId: user.userId,
-      fullName: user.fullName,
-      gender: user.gender,
-      bloodGroup: user.bloodGroup || "",
-      phone: user.phone || "",
-      photo: user.photo || ""
-    });
+  userId: user.userId,
+  fullName: user.fullName,
+  email: user.email, // ✅ ADD
+  gender: user.gender,
+  bloodGroup: user.bloodGroup || "",
+  phone: user.phone || "",
+  photo: user.photo || ""
+});
 
   } catch (err) {
     res.status(500).json({ message: "Fetch failed" });
@@ -28,29 +29,30 @@ router.get("/:userId", async (req, res) => {
 /* ================= CREATE / UPDATE PROFILE ================= */
 router.post("/", async (req, res) => {
   try {
-    let { userId, fullName, gender, bloodGroup, phone, photo } = req.body;
+    let { userId, fullName, gender, bloodGroup,email, phone, photo } = req.body;
 
     if (!userId) userId = "USR-" + nanoid(6);
 
     let user = await User.findOne({ userId });
 
     if (user) {
-      // 🔥 FIXED
-      user.fullName = fullName;
-      user.gender = gender;
-      user.bloodGroup = bloodGroup;
-      user.phone = phone;
-      user.photo = photo;
-    } else {
-      user = new User({
-        userId,
-        fullName,
-        gender,
-        bloodGroup,
-        phone,
-        photo
-      });
-    }
+  user.fullName = fullName;
+  user.email = email; // ✅ ADD
+  user.gender = gender;
+  user.bloodGroup = bloodGroup;
+  user.phone = phone;
+  user.photo = photo;
+} else {
+  user = new User({
+    userId,
+    fullName,
+    email, // ✅ ADD
+    gender,
+    bloodGroup,
+    phone,
+    photo
+  });
+}
 
     await user.save();
 
