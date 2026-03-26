@@ -5,24 +5,49 @@ import { nanoid } from "nanoid";
 const router = express.Router();
 
 /* ================= GET PROFILE ================= */
-router.get("/:userId", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const user = await User.findOne({ userId: req.params.userId });
+    let { userId, fullName, email, gender, bloodGroup, phone, photo } = req.body;
 
-    if (!user) return res.json({});
+    if (!userId) userId = "USR-" + nanoid(6);
 
+    let user = await User.findOne({ userId });
+
+    if (user) {
+      user.fullName = fullName;
+      user.email = email; // 🔥 CRITICAL
+      user.gender = gender;
+      user.bloodGroup = bloodGroup;
+      user.phone = phone;
+      user.photo = photo;
+    } else {
+      user = new User({
+        userId,
+        fullName,
+        email, // 🔥 CRITICAL
+        gender,
+        bloodGroup,
+        phone,
+        photo
+      });
+    }
+
+    await user.save();
+
+    // 🔥 RETURN EMAIL ALSO
     res.json({
-  userId: user.userId,
-  fullName: user.fullName,
-  email: user.email, // ✅ ADD
-  gender: user.gender,
-  bloodGroup: user.bloodGroup || "",
-  phone: user.phone || "",
-  photo: user.photo || ""
-});
+      userId: user.userId,
+      fullName: user.fullName,
+      email: user.email,
+      gender: user.gender,
+      bloodGroup: user.bloodGroup || "",
+      phone: user.phone || "",
+      photo: user.photo || ""
+    });
 
   } catch (err) {
-    res.status(500).json({ message: "Fetch failed" });
+    console.error("User save error:", err);
+    res.status(500).json({ message: "Save failed" });
   }
 });
 

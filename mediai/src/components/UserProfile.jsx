@@ -119,7 +119,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* INFO */}
         <div style={info}>
-          <p><b>Email:</b> {form.email || "-"}</p> {/* ✅ FIX */}
+          <p><b>Email:</b> {user.email || "-"}</p>
           <p><b>Phone:</b> {form.phone || "-"}</p>
           <p><b>Gender:</b> {form.gender || "-"}</p>
           <p><b>Blood Group:</b> {form.bloodGroup || "-"}</p>
