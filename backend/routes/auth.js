@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
-import { Resend } from "resend";
+import client from "../utils/twilio.js";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
 const router = express.Router();
 
@@ -152,6 +153,8 @@ router.post("/register", async (req, res) => {
 
 /* ================= SEND OTP ============== */
 
+import client from "../utils/twilio.js";
+
 router.post("/send-otp", async (req, res) => {
   try {
     let { phone } = req.body;
@@ -169,24 +172,25 @@ router.post("/send-otp", async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // 🔥 generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.otp = otp;
-
-    // 🔥 180 seconds expiry
     user.otpExpiry = Date.now() + 180 * 1000;
 
     await user.save();
 
-    // 🔥 TEMP (replace with SMS later)
-    console.log("OTP:", otp);
+    // 🔥 SEND SMS
+    await client.messages.create({
+      body: `Your MediAI OTP is: ${otp}`,
+      from: process.env.TWILIO_PHONE,
+      to: `+91${phone}` // change country code if needed
+    });
 
-    res.json({ message: "OTP sent" });
+    res.json({ message: "OTP sent to phone" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "OTP failed" });
+    console.error("TWILIO ERROR:", err);
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 });
 
@@ -318,32 +322,64 @@ router.post("/profile", async (req, res) => {
 });
 
 /* ================= FORGOT PASSWORD ================= */
+import SibApiV3Sdk from "sib-api-v3-sdk";
+
 router.post("/forgot-password", async (req, res) => {
   try {
-    const user = await User.findOne({ email: normalizeEmail(req.body.email) });
+    const { email } = req.body;
 
-    if (!user) return res.json({ message: "If exists, email sent" });
+    if (!email) {
+      return res.status(400).json({ message: "Email required" });
+    }
+
+    if (!process.env.BREVO_API_KEY) {
+      console.error("❌ BREVO API KEY MISSING");
+      return res.status(500).json({ message: "Email config missing" });
+    }
+
+    const user = await AuthUser.findOne({ email });
+
+    if (!user) {
+      return res.json({ message: "If email exists, reset sent" });
+    }
 
     const token = crypto.randomBytes(32).toString("hex");
 
     user.resetToken = token;
     user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
-
     await user.save();
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resetLink = `https://mediai.indevs.in/reset/${token}`;
 
-    await resend.emails.send({
-      from: "no-reply@mediai.indevs.in",
-      to: user.email,
-      subject: "Reset Password",
-      html: `<a href="https://mediai.indevs.in/reset/${token}">Reset</a>`
+    // 🔥 BREVO SETUP
+    const client = SibApiV3Sdk.ApiClient.instance;
+    client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+    await apiInstance.sendTransacEmail({
+      sender: {
+        email: "medi.ai.0326@gmail.com",   // ⚠️ must be verified in Brevo
+        name: "MediAI"
+      },
+      to: [{ email }],
+      subject: "Reset your password",
+      htmlContent: `
+        <h2>Password Reset</h2>
+        <p>Click below:</p>
+        <a href="${resetLink}">${resetLink}</a>
+      `
     });
 
     res.json({ message: "Reset link sent" });
 
-  } catch {
-    res.status(500).json({ message: "Error" });
+  } catch (err) {
+    console.error("❌ BREVO ERROR:", err.response?.body || err.message);
+
+    res.status(500).json({
+      message: "Email failed",
+      error: err.message
+    });
   }
 });
 
