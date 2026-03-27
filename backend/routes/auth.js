@@ -322,7 +322,6 @@ router.post("/profile", async (req, res) => {
 });
 
 /* ================= FORGOT PASSWORD ================= */
-import SibApiV3Sdk from "sib-api-v3-sdk";
 
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -330,11 +329,6 @@ router.post("/forgot-password", async (req, res) => {
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
-    }
-
-    if (!process.env.BREVO_API_KEY) {
-      console.error("❌ BREVO API KEY MISSING");
-      return res.status(500).json({ message: "Email config missing" });
     }
 
     const user = await AuthUser.findOne({ email });
@@ -351,15 +345,17 @@ router.post("/forgot-password", async (req, res) => {
 
     const resetLink = `https://mediai.indevs.in/reset/${token}`;
 
-    // 🔥 BREVO SETUP
+    // 🔥 BREVO SETUP (SAFE VERSION)
     const client = SibApiV3Sdk.ApiClient.instance;
-    client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+    const apiKey = client.authentications["api-key"];
+
+    apiKey.apiKey = process.env.BREVO_API_KEY;
 
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
     await apiInstance.sendTransacEmail({
       sender: {
-        email: "medi.ai.0326@gmail.com",   // ⚠️ must be verified in Brevo
+        email: "medi.ai.0326@gmail.com", // 🔥 MUST BE VERIFIED
         name: "MediAI"
       },
       to: [{ email }],
@@ -374,15 +370,14 @@ router.post("/forgot-password", async (req, res) => {
     res.json({ message: "Reset link sent" });
 
   } catch (err) {
-    console.error("❌ BREVO ERROR:", err.response?.body || err.message);
+    console.error("❌ BREVO ERROR FULL:", err);
 
-    res.status(500).json({
-      message: "Email failed",
+    return res.status(500).json({
+      message: "Reset failed",
       error: err.message
     });
   }
 });
-
 /* ================= RESET PASSWORD ================= */
 router.post("/reset-password/:token", async (req, res) => {
   try {
