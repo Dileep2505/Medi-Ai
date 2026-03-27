@@ -150,6 +150,78 @@ router.post("/register", async (req, res) => {
   }
 });
 
+/* ================= SEND OTP ============== */
+
+router.post("/send-otp", async (req, res) => {
+  try {
+    let { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({ message: "Phone required" });
+    }
+
+    // ✅ normalize
+    phone = phone.replace(/\D/g, "").slice(-10);
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // 🔥 generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.otp = otp;
+
+    // 🔥 180 seconds expiry
+    user.otpExpiry = Date.now() + 180 * 1000;
+
+    await user.save();
+
+    // 🔥 TEMP (replace with SMS later)
+    console.log("OTP:", otp);
+
+    res.json({ message: "OTP sent" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "OTP failed" });
+  }
+});
+
+/* ================= VERIFY OTP ============ */
+
+router.post("/verify-otp", async (req, res) => {
+  try {
+    let { phone, otp } = req.body;
+
+    phone = phone.replace(/\D/g, "").slice(-10);
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (!user.otpExpiry || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    res.json({
+      message: "OTP verified",
+      userId: user.userId
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Verification failed" });
+  }
+});
+
 /* ================= LOGIN ================= */
 router.post("/login", async (req, res) => {
   try {
@@ -295,6 +367,37 @@ router.post("/reset-password/:token", async (req, res) => {
 
   } catch {
     res.status(500).json({ message: "Error" });
+  }
+});
+
+
+router.post("/verify-otp", async (req, res) => {
+  try {
+    let { phone, otp } = req.body;
+
+    phone = phone.replace(/\D/g, "").slice(-10);
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (!user.otpExpiry || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    res.json({
+      message: "OTP verified",
+      userId: user.userId
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Verification failed" });
   }
 });
 
