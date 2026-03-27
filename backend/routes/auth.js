@@ -13,7 +13,29 @@ const normalizeUsername = (username) => username.trim().toLowerCase();
 
 /* ================= USERNAME RULE ================= */
 // 3 letters + special + 3-4 numbers
-const usernameRegex = /^[a-zA-Z]{3}[_\-.][0-9]{3,4}$/;
+const generateUsername = async (fullName) => {
+  const base = fullName
+    .toLowerCase()
+    .replace(/[^a-z ]/g, "")
+    .trim()
+    .split(" ")
+    .join("_");
+
+  const variants = [
+    base,
+    base + "_" + Math.floor(100 + Math.random() * 900),
+    base + "." + Math.floor(100 + Math.random() * 900),
+    base + "_" + Math.floor(1000 + Math.random() * 9000)
+  ];
+
+  for (let username of variants) {
+    const exists = await User.findOne({ username });
+    if (!exists) return username;
+  }
+
+  // fallback (guaranteed unique)
+  return base + "_" + Date.now().toString().slice(-4);
+};
 
 /* ================= GENERATE USER ID ================= */
 // 4 letters + "_" + 4 numbers
@@ -62,6 +84,10 @@ router.post("/register", async (req, res) => {
   try {
     let { fullName, username, email, phone, gender, password } = req.body;
 
+// 🔥 AUTO GENERATE if empty
+if (!username || username.trim() === "") {
+  username = await generateUsername(fullName);
+}
     if (!fullName || !username || !email || !phone || !gender || !password) {
       return res.status(400).json({ message: "All fields required" });
     }
@@ -70,11 +96,6 @@ router.post("/register", async (req, res) => {
     username = normalizeUsername(username);
 
     // 🔥 VALIDATION
-    if (!usernameRegex.test(username)) {
-      return res.status(400).json({
-        message: "Username must be like abc_123"
-      });
-    }
 
     if (!/^\d{10,15}$/.test(phone)) {
       return res.status(400).json({

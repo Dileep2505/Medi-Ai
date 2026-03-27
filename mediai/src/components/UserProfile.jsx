@@ -124,7 +124,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
         {/* NAME + ID */}
         <div style={{ textAlign: "center" }}>
           <h2>{form.fullName || user.fullName || "User Name"}</h2>
-          <p style={{ color: "#666" }}>{form.userId || user.userId}</p>
+          <p style={{ color: "#666" }}>{form.username || user.username}</p>
         </div>
 
         <hr />
