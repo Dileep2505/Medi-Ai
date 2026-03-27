@@ -2,7 +2,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import User from "../models/User.js"; // ✅ FIXED
+import User from "../models/User.js";
 import { Resend } from "resend";
 
 const router = express.Router();
@@ -11,15 +11,16 @@ const router = express.Router();
 const normalizeEmail = (email) => email.trim().toLowerCase();
 const normalizeUsername = (username) => username.trim().toLowerCase();
 
-/* ================= USERNAME RULE ================= */
-// 3 letters + special + 3-4 numbers
+/* ================= USERNAME GENERATOR ================= */
 const generateUsername = async (fullName) => {
-  const base = fullName
+  let base = fullName
     .toLowerCase()
     .replace(/[^a-z ]/g, "")
     .trim()
     .split(" ")
     .join("_");
+
+  if (!base) base = "user"; // ✅ fallback
 
   const variants = [
     base,
@@ -33,12 +34,11 @@ const generateUsername = async (fullName) => {
     if (!exists) return username;
   }
 
-  // fallback (guaranteed unique)
-  return base + "_" + Date.now().toString().slice(-4);
+  // ✅ guaranteed unique
+  return base + "_" + Date.now().toString().slice(-5);
 };
 
-/* ================= GENERATE USER ID ================= */
-// 4 letters + "_" + 4 numbers
+/* ================= USER ID ================= */
 const generateUserId = () => {
   const letters = Array.from({ length: 4 }, () =>
     String.fromCharCode(97 + Math.floor(Math.random() * 26))
@@ -54,21 +54,13 @@ router.get("/check-username/:username", async (req, res) => {
   try {
     const username = normalizeUsername(req.params.username);
 
-    if (!usernameRegex.test(username)) {
-      return res.status(400).json({
-        available: false,
-        message: "Format: abc_123 or abc-1234"
-      });
-    }
-
     const exists = await User.findOne({ username });
 
     if (!exists) return res.json({ available: true });
 
-    // ✅ VALID suggestions
     const suggestions = [
-      username.slice(0, 3) + "_" + Math.floor(100 + Math.random() * 900),
-      username.slice(0, 3) + "-" + Math.floor(1000 + Math.random() * 9000)
+      username + "_" + Math.floor(100 + Math.random() * 900),
+      username + "." + Math.floor(1000 + Math.random() * 9000)
     ];
 
     res.json({ available: false, suggestions });
@@ -84,26 +76,27 @@ router.post("/register", async (req, res) => {
   try {
     let { fullName, username, email, phone, gender, password } = req.body;
 
-// 🔥 AUTO GENERATE if empty
-if (!username || username.trim() === "") {
-  username = await generateUsername(fullName);
-}
-    if (!fullName || !username || !email || !phone || !gender || !password) {
+    if (!fullName || !email || !phone || !gender || !password) {
       return res.status(400).json({ message: "All fields required" });
     }
 
     email = normalizeEmail(email);
-    username = normalizeUsername(username);
 
-    // 🔥 VALIDATION
+    // ✅ NORMALIZE PHONE
+    phone = phone.replace(/\D/g, "");
 
     if (!/^\d{10,15}$/.test(phone)) {
-      return res.status(400).json({
-        message: "Invalid phone number"
-      });
+      return res.status(400).json({ message: "Invalid phone number" });
     }
 
-    // 🔥 UNIQUE CHECKS
+    // ✅ AUTO USERNAME
+    if (!username || username.trim() === "") {
+      username = await generateUsername(fullName);
+    } else {
+      username = normalizeUsername(username);
+    }
+
+    // ✅ UNIQUE CHECKS
     if (await User.findOne({ email }))
       return res.status(400).json({ message: "Email exists" });
 
@@ -114,7 +107,6 @@ if (!username || username.trim() === "") {
       return res.status(400).json({ message: "Phone exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-
     const userId = generateUserId();
 
     const user = await User.create({
@@ -151,9 +143,7 @@ if (!username || username.trim() === "") {
     console.error("REGISTER ERROR:", err);
 
     if (err.code === 11000) {
-      return res.status(400).json({
-        message: "Duplicate field"
-      });
+      return res.status(400).json({ message: "Duplicate field" });
     }
 
     res.status(500).json({ message: "Register failed" });
@@ -163,7 +153,7 @@ if (!username || username.trim() === "") {
 /* ================= LOGIN ================= */
 router.post("/login", async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    let { identifier, password } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({
@@ -171,14 +161,21 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    let input = identifier.trim();
+
+    // ✅ NORMALIZE PHONE INPUT
+    if (/^\+?\d+$/.test(input)) {
+      input = input.replace(/\D/g, "");
+    }
+
     let user;
 
-    if (/^\d{10,15}$/.test(identifier)) {
-      user = await User.findOne({ phone: identifier });
-    } else if (identifier.includes("@")) {
-      user = await User.findOne({ email: normalizeEmail(identifier) });
+    if (/^\d{10,15}$/.test(input)) {
+      user = await User.findOne({ phone: input });
+    } else if (input.includes("@")) {
+      user = await User.findOne({ email: normalizeEmail(input) });
     } else {
-      user = await User.findOne({ username: normalizeUsername(identifier) });
+      user = await User.findOne({ username: normalizeUsername(input) });
     }
 
     if (!user)
@@ -233,24 +230,14 @@ router.post("/profile", async (req, res) => {
 
     user.fullName = fullName ?? user.fullName;
     user.email = email ?? user.email;
-    user.phone = phone ?? user.phone;
+    user.phone = phone ? phone.replace(/\D/g, "") : user.phone;
     user.gender = gender ?? user.gender;
     user.bloodGroup = bloodGroup ?? user.bloodGroup;
     user.photo = photo ?? user.photo;
 
     await user.save();
 
-    res.json({
-      user: {
-        userId: user.userId,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        gender: user.gender,
-        bloodGroup: user.bloodGroup || "",
-        photo: user.photo || ""
-      }
-    });
+    res.json({ user });
 
   } catch (err) {
     console.error(err);
@@ -258,7 +245,7 @@ router.post("/profile", async (req, res) => {
   }
 });
 
-/* ================= RESET FLOW (UNCHANGED BUT FIXED MODEL) ================= */
+/* ================= FORGOT PASSWORD ================= */
 router.post("/forgot-password", async (req, res) => {
   try {
     const user = await User.findOne({ email: normalizeEmail(req.body.email) });
@@ -288,6 +275,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
+/* ================= RESET PASSWORD ================= */
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const user = await User.findOne({

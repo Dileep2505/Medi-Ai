@@ -29,6 +29,8 @@ export default function Register({
 
   /* ================= USERNAME CHECK ================= */
   const checkUsername = (value) => {
+    if (!value) return;
+
     setUsernameStatus("checking");
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -60,7 +62,6 @@ export default function Register({
 
     if (
       !form.fullName ||
-      !form.username ||
       !form.email ||
       !form.phone ||
       !form.gender ||
@@ -68,11 +69,6 @@ export default function Register({
       !form.confirmPassword
     ) {
       setError("All fields are required");
-      return;
-    }
-
-    if (usernameStatus !== "available") {
-      setError("Choose a valid username");
       return;
     }
 
@@ -86,9 +82,9 @@ export default function Register({
 
       const payload = {
         fullName: form.fullName.trim(),
-        username: form.username.trim().toLowerCase(),
+        username: form.username?.trim().toLowerCase(), // optional
         email: form.email.trim().toLowerCase(),
-        phone: form.phone.trim(),
+        phone: form.phone.replace(/\D/g, ""), // ✅ FIXED
         gender: form.gender,
         password: form.password
       };
@@ -108,8 +104,6 @@ export default function Register({
         return;
       }
 
-      /* 🔥 AUTO LOGIN */
-
       const user = data.user;
 
       if (!user || !user.userId) {
@@ -117,23 +111,21 @@ export default function Register({
         return;
       }
 
-      // 🔥 STORE EVERYTHING
+      // ✅ STORE
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("userId", user.userId);
 
       if (data.token) {
         localStorage.setItem("token", data.token);
-      } else {
-        console.warn("⚠️ Token missing from backend response");
       }
 
-      // 🔥 UPDATE STATE
+      // ✅ STATE
       setUser(user);
       setLoggedIn(true);
 
-      setSuccess("Account created successfully!");
+      setSuccess("Account created!");
 
-      // 🔥 HARD REDIRECT (guaranteed fix)
+      // ✅ REDIRECT
       setTimeout(() => {
         window.location.reload();
       }, 500);
@@ -160,6 +152,7 @@ export default function Register({
           {error && <p style={{ color: "red" }}>{error}</p>}
           {success && <p style={{ color: "green" }}>{success}</p>}
 
+          {/* FULL NAME */}
           <input
             className="auth-input"
             placeholder="Full Name"
@@ -169,9 +162,10 @@ export default function Register({
             }
           />
 
+          {/* USERNAME (OPTIONAL) */}
           <input
             className="auth-input"
-            placeholder="Username"
+            placeholder="Username (optional)"
             value={form.username}
             onChange={(e) => {
               const value = e.target.value.trim();
@@ -208,6 +202,7 @@ export default function Register({
             </div>
           )}
 
+          {/* EMAIL */}
           <input
             className="auth-input"
             placeholder="Email"
@@ -217,6 +212,7 @@ export default function Register({
             }
           />
 
+          {/* PHONE ✅ FIXED */}
           <input
             className="auth-input"
             placeholder="Phone"
@@ -229,6 +225,7 @@ export default function Register({
             }
           />
 
+          {/* GENDER */}
           <select
             className="auth-input"
             value={form.gender}
@@ -241,6 +238,7 @@ export default function Register({
             <option value="female">Female</option>
           </select>
 
+          {/* PASSWORD */}
           <input
             type="password"
             className="auth-input"
@@ -251,6 +249,7 @@ export default function Register({
             }
           />
 
+          {/* CONFIRM */}
           <input
             type="password"
             className="auth-input"
