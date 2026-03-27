@@ -1,7 +1,5 @@
 import express from "express";
 import User from "../models/User.js";
-import AuthUser from "../models/AuthUser.js";
-import { nanoid } from "nanoid";
 
 const router = express.Router();
 
@@ -11,20 +9,28 @@ router.get("/:userId", async (req, res) => {
     const { userId } = req.params;
 
     const user = await User.findOne({ userId });
-    const auth = await AuthUser.findOne({ userId });
 
-    // 🔥 MERGE BOTH (CRITICAL FIX)
-    const merged = {
-      userId,
-      fullName: user?.fullName || auth?.fullName || "",
-      email: user?.email || auth?.email || "",
-      phone: user?.phone || auth?.phone || "",
-      gender: user?.gender || auth?.gender || "",
-      bloodGroup: user?.bloodGroup || "",
-      photo: user?.photo || ""
-    };
+    if (!user) {
+      return res.json({
+        userId,
+        fullName: "",
+        email: "",
+        phone: "",
+        gender: "",
+        bloodGroup: "",
+        photo: ""
+      });
+    }
 
-    return res.json(merged);
+    return res.json({
+      userId: user.userId,
+      fullName: user.fullName || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      gender: user.gender || "",
+      bloodGroup: user.bloodGroup || "",
+      photo: user.photo || ""
+    });
 
   } catch (err) {
     console.error("FETCH ERROR:", err);
@@ -35,7 +41,7 @@ router.get("/:userId", async (req, res) => {
 /* ================= CREATE / UPDATE PROFILE ================= */
 router.post("/", async (req, res) => {
   try {
-    let {
+    const {
       userId,
       fullName,
       email,
@@ -46,13 +52,13 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     if (!userId) {
-      userId = "USR-" + nanoid(6);
+      return res.status(400).json({ message: "userId required" });
     }
 
     let user = await User.findOne({ userId });
 
     if (user) {
-      // ✅ UPDATE USER COLLECTION
+      // ✅ UPDATE (SAFE MERGE)
       user.fullName = fullName ?? user.fullName;
       user.email = email ?? user.email;
       user.gender = gender ?? user.gender;
@@ -60,7 +66,7 @@ router.post("/", async (req, res) => {
       user.phone = phone ?? user.phone;
       user.photo = photo ?? user.photo;
     } else {
-      // ✅ CREATE USER
+      // ✅ CREATE
       user = new User({
         userId,
         fullName,
@@ -74,29 +80,14 @@ router.post("/", async (req, res) => {
 
     await user.save();
 
-    /* 🔥 SYNC WITH AUTHUSER (MOST IMPORTANT FIX) */
-    const auth = await AuthUser.findOne({ userId });
-
-    if (auth) {
-      auth.fullName = fullName ?? auth.fullName;
-      auth.email = email ?? auth.email;
-      auth.phone = phone ?? auth.phone;
-      auth.gender = gender ?? auth.gender;
-      auth.bloodGroup = bloodGroup ?? auth.bloodGroup;
-      auth.photo = photo ?? auth.photo;
-
-      await auth.save();
-    }
-
-    // ✅ RETURN CLEAN MERGED DATA
     return res.json({
-      userId,
-      fullName: fullName || "",
-      email: email || "",
-      gender: gender || "",
-      bloodGroup: bloodGroup || "",
-      phone: phone || "",
-      photo: photo || ""
+      userId: user.userId,
+      fullName: user.fullName || "",
+      email: user.email || "",
+      gender: user.gender || "",
+      bloodGroup: user.bloodGroup || "",
+      phone: user.phone || "",
+      photo: user.photo || ""
     });
 
   } catch (err) {

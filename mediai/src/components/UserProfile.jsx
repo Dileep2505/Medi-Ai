@@ -18,18 +18,18 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
     photo: ""
   });
 
-  /* ✅ SYNC USER ONLY WHEN NOT EDITING */
+  /* ✅ SAFE SYNC */
   useEffect(() => {
     if (!editMode) {
-      setForm({
-        userId: user?.userId || "",
-        fullName: user?.fullName || "",
-        email: user?.email || "",
-        gender: user?.gender || "",
-        bloodGroup: user?.bloodGroup || "",
-        phone: user?.phone || "",
-        photo: user?.photo || ""
-      });
+      setForm(prev => ({
+        userId: user?.userId || prev.userId,
+        fullName: user?.fullName || prev.fullName,
+        email: user?.email || prev.email,
+        gender: user?.gender || prev.gender,
+        bloodGroup: user?.bloodGroup || prev.bloodGroup,
+        phone: user?.phone || prev.phone,
+        photo: user?.photo || prev.photo
+      }));
     }
   }, [user, editMode]);
 
@@ -42,9 +42,11 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
   const handlePhoto = (e) => {
     if (!e.target.files[0]) return;
+
     const reader = new FileReader();
     reader.onloadend = () =>
       setForm({ ...form, photo: reader.result });
+
     reader.readAsDataURL(e.target.files[0]);
   };
 
@@ -69,10 +71,15 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
       const updatedUser = data.user || data;
 
-      /* ✅ MERGE OLD + NEW (CRITICAL FIX) */
+      // 🔥 HARD MERGE (NEVER LOSE DATA)
       const finalUser = {
-        ...user,
-        ...updatedUser
+        userId: updatedUser.userId || user.userId,
+        fullName: updatedUser.fullName || user.fullName || "",
+        email: updatedUser.email || user.email || "",
+        gender: updatedUser.gender || user.gender || "",
+        bloodGroup: updatedUser.bloodGroup || user.bloodGroup || "",
+        phone: updatedUser.phone || user.phone || "",
+        photo: updatedUser.photo || user.photo || ""
       };
 
       setUser(finalUser);
@@ -102,7 +109,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
             {form.photo ? (
               <img src={form.photo} alt="" style={avatarImg} />
             ) : (
-              form.fullName?.charAt(0).toUpperCase() || "👤"
+              form.fullName?.charAt(0)?.toUpperCase() || "👤"
             )}
 
             <input
@@ -116,64 +123,29 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* NAME + ID */}
         <div style={{ textAlign: "center" }}>
-          <h2>{form.fullName || "User Name"}</h2>
-          <p style={{ color: "#666" }}>{form.userId || "User ID"}</p>
+          <h2>{form.fullName || user.fullName || "User Name"}</h2>
+          <p style={{ color: "#666" }}>{form.userId || user.userId}</p>
         </div>
 
         <hr />
 
         {/* INFO */}
         <div style={info}>
-          <p><b>Email:</b> {form.email || "-"}</p>
-          <p><b>Phone:</b> {form.phone || "-"}</p>
-          <p><b>Gender:</b> {form.gender || "-"}</p>
-          <p><b>Blood Group:</b> {form.bloodGroup || "-"}</p>
+          <p><b>Email:</b> {form.email || user.email || "-"}</p>
+          <p><b>Phone:</b> {form.phone || user.phone || "-"}</p>
+          <p><b>Gender:</b> {form.gender || user.gender || "-"}</p>
+          <p><b>Blood Group:</b> {form.bloodGroup || user.bloodGroup || "-"}</p>
         </div>
 
         {/* EDIT MODE */}
         {editMode && (
           <>
-            <input
-              name="fullName"
-              value={form.fullName}
-              onChange={handleChange}
-              placeholder="Name"
-              style={input}
-            />
-
-            <input
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Email"
-              style={input}
-            />
-
-            <input
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              placeholder="Gender"
-              style={input}
-            />
-
-            <input
-              name="bloodGroup"
-              value={form.bloodGroup}
-              onChange={handleChange}
-              placeholder="Blood Group"
-              style={input}
-            />
-
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="Phone"
-              style={input}
-            />
-
-            <input type="file" onChange={handlePhoto} />
+            <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Name" style={input}/>
+            <input name="email" value={form.email} onChange={handleChange} placeholder="Email" style={input}/>
+            <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" style={input}/>
+            <input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="Blood Group" style={input}/>
+            <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" style={input}/>
+            <input type="file" onChange={handlePhoto}/>
           </>
         )}
 
@@ -197,7 +169,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
 export default UserProfile;
 
-/* STYLES */
+/* STYLES (unchanged) */
 
 const overlay = {
   display: "flex",
