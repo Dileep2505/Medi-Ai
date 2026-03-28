@@ -16,8 +16,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.0",
     "nanoid": "^5.1.6",
-    "sib-api-v3-sdk": "^8.5.0",
-    "twilio": "^5.13.1"
+    "sib-api-v3-sdk": "^8.5.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

@@ -3,9 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
-import client from "../utils/twilio.js";
-import SibApiV3Sdk from "sib-api-v3-sdk";
 import transporter from "../utils/mailer.js";
+import twilioClient from "../utils/twilio.js"; // ✅ FIX
 
 const router = express.Router();
 
@@ -13,16 +12,10 @@ const router = express.Router();
 const normalizeEmail = (email) => email.trim().toLowerCase();
 const normalizeUsername = (username) => username.trim().toLowerCase();
 
-/* ================= USERNAME GENERATOR ================= */
+/* ================= USERNAME ================= */
 const generateUsername = async (fullName) => {
-  let base = fullName
-    .toLowerCase()
-    .replace(/[^a-z ]/g, "")
-    .trim()
-    .split(" ")
-    .join("_");
-
-  if (!base) base = "user"; // ✅ fallback
+  let base = fullName.toLowerCase().replace(/[^a-z ]/g, "").trim().split(" ").join("_");
+  if (!base) base = "user";
 
   const variants = [
     base,
@@ -31,47 +24,22 @@ const generateUsername = async (fullName) => {
     base + "_" + Math.floor(1000 + Math.random() * 9000)
   ];
 
-  for (let username of variants) {
-    const exists = await User.findOne({ username });
-    if (!exists) return username;
+  for (let u of variants) {
+    if (!(await User.findOne({ username: u }))) return u;
   }
 
-  // ✅ guaranteed unique
   return base + "_" + Date.now().toString().slice(-5);
 };
 
 /* ================= USER ID ================= */
 const generateUserId = () => {
   const letters = Array.from({ length: 4 }, () =>
-    String.fromCharCode(97 + Math.floor(Math.random() * 26))
+    String.fromCharCode(97 + Math.random() * 26)
   ).join("");
 
   const numbers = Math.floor(1000 + Math.random() * 9000);
-
   return `${letters}_${numbers}`;
 };
-
-/* ================= CHECK USERNAME ================= */
-router.get("/check-username/:username", async (req, res) => {
-  try {
-    const username = normalizeUsername(req.params.username);
-
-    const exists = await User.findOne({ username });
-
-    if (!exists) return res.json({ available: true });
-
-    const suggestions = [
-      username + "_" + Math.floor(100 + Math.random() * 900),
-      username + "." + Math.floor(1000 + Math.random() * 9000)
-    ];
-
-    res.json({ available: false, suggestions });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ available: false });
-  }
-});
 
 /* ================= REGISTER ================= */
 router.post("/register", async (req, res) => {
@@ -83,22 +51,16 @@ router.post("/register", async (req, res) => {
     }
 
     email = normalizeEmail(email);
-
-    // ✅ NORMALIZE PHONE
     phone = phone.replace(/\D/g, "");
 
     if (!/^\d{10,15}$/.test(phone)) {
-      return res.status(400).json({ message: "Invalid phone number" });
+      return res.status(400).json({ message: "Invalid phone" });
     }
 
-    // ✅ AUTO USERNAME
-    if (!username || username.trim() === "") {
-      username = await generateUsername(fullName);
-    } else {
-      username = normalizeUsername(username);
-    }
+    username = username?.trim()
+      ? normalizeUsername(username)
+      : await generateUsername(fullName);
 
-    // ✅ UNIQUE CHECKS
     if (await User.findOne({ email }))
       return res.status(400).json({ message: "Email exists" });
 
@@ -121,108 +83,63 @@ router.post("/register", async (req, res) => {
       password: hashed
     });
 
-    const token = jwt.sign(
-      { userId },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    res.status(201).json({
-      token,
-      user: {
-        userId,
-        fullName,
-        username,
-        email,
-        phone,
-        gender,
-        bloodGroup: "",
-        photo: ""
-      }
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+      expiresIn: "7d"
     });
 
+    res.json({ token, user });
+
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
-
-    if (err.code === 11000) {
-      return res.status(400).json({ message: "Duplicate field" });
-    }
-
+    console.error(err);
     res.status(500).json({ message: "Register failed" });
   }
 });
 
-/* ================= SEND OTP ============== */
-
-import client from "../utils/twilio.js";
-
+/* ================= SEND OTP ================= */
 router.post("/send-otp", async (req, res) => {
   try {
     let { phone } = req.body;
-
-    if (!phone) {
-      return res.status(400).json({ message: "Phone required" });
-    }
-
-    // ✅ normalize
-    phone = phone.replace(/\D/g, "").slice(-10);
+    phone = phone.replace(/\D/g, "");
 
     const user = await User.findOne({ phone });
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
+    if (!user) return res.status(400).json({ message: "User not found" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.otp = otp;
-    user.otpExpiry = Date.now() + 180 * 1000;
-
+    user.otpExpiry = Date.now() + 180000;
     await user.save();
 
-    // 🔥 SEND SMS
-    await client.messages.create({
-      body: `Your MediAI OTP is: ${otp}`,
+    await twilioClient.messages.create({
+      body: `OTP: ${otp}`,
       from: process.env.TWILIO_PHONE,
-      to: `+91${phone}` // change country code if needed
+      to: `+91${phone}`
     });
 
-    res.json({ message: "OTP sent to phone" });
+    res.json({ message: "OTP sent" });
 
   } catch (err) {
-    console.error("TWILIO ERROR:", err);
-    res.status(500).json({ message: "Failed to send OTP" });
+    console.error(err);
+    res.status(500).json({ message: "OTP failed" });
   }
 });
 
-/* ================= VERIFY OTP ============ */
-
+/* ================= VERIFY OTP ================= */
 router.post("/verify-otp", async (req, res) => {
   try {
     let { phone, otp } = req.body;
-
-    phone = phone.replace(/\D/g, "").slice(-10);
+    phone = phone.replace(/\D/g, "");
 
     const user = await User.findOne({ phone });
 
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    if (user.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    if (!user.otpExpiry || user.otpExpiry < Date.now()) {
+    if (!user) return res.status(400).json({ message: "User not found" });
+    if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (user.otpExpiry < Date.now())
       return res.status(400).json({ message: "OTP expired" });
-    }
 
-    res.json({
-      message: "OTP verified",
-      userId: user.userId
-    });
+    res.json({ message: "Verified", userId: user.userId });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Verification failed" });
   }
 });
@@ -233,110 +150,45 @@ router.post("/login", async (req, res) => {
     let { identifier, password } = req.body;
 
     if (!identifier || !password) {
-      return res.status(400).json({
-        message: "Email / Username / Phone required"
-      });
+      return res.status(400).json({ message: "Required fields missing" });
     }
 
-    let input = identifier.trim();
-
-    // ✅ NORMALIZE PHONE INPUT
-    if (/^\+?\d+$/.test(input)) {
-      input = input.replace(/\D/g, "");
-    }
+    let input = identifier.trim().replace(/\D/g, "");
 
     let user;
 
     if (/^\d{10,15}$/.test(input)) {
       user = await User.findOne({ phone: input });
-    } else if (input.includes("@")) {
-      user = await User.findOne({ email: normalizeEmail(input) });
+    } else if (identifier.includes("@")) {
+      user = await User.findOne({ email: normalizeEmail(identifier) });
     } else {
-      user = await User.findOne({ username: normalizeUsername(input) });
+      user = await User.findOne({ username: normalizeUsername(identifier) });
     }
 
-    if (!user)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
-    if (!match)
-      return res.status(400).json({ message: "Invalid credentials" });
-
-    const token = jwt.sign(
-      { userId: user.userId },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    res.json({
-      token,
-      user: {
-        userId: user.userId,
-        fullName: user.fullName,
-        username: user.username,
-        email: user.email,
-        phone: user.phone,
-        gender: user.gender,
-        bloodGroup: user.bloodGroup || "",
-        photo: user.photo || ""
-      }
+    const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, {
+      expiresIn: "7d"
     });
 
+    res.json({ token, user });
+
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
+    console.error(err);
     res.status(500).json({ message: "Login failed" });
   }
 });
 
-/* ================= UPDATE PROFILE ================= */
-router.post("/profile", async (req, res) => {
-  try {
-    const {
-      userId,
-      fullName,
-      email,
-      phone,
-      gender,
-      bloodGroup,
-      photo
-    } = req.body;
-
-    const user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.fullName = fullName ?? user.fullName;
-    user.email = email ?? user.email;
-    user.phone = phone ? phone.replace(/\D/g, "") : user.phone;
-    user.gender = gender ?? user.gender;
-    user.bloodGroup = bloodGroup ?? user.bloodGroup;
-    user.photo = photo ?? user.photo;
-
-    await user.save();
-
-    res.json({ user });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Update failed" });
-  }
-});
-
 /* ================= FORGOT PASSWORD ================= */
-
 router.post("/forgot-password", async (req, res) => {
   try {
-    const email = req.body.email?.trim().toLowerCase();
-
-    if (!email) {
-      return res.status(400).json({ message: "Email required" });
-    }
+    const email = normalizeEmail(req.body.email);
 
     const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.json({ message: "If email exists, reset sent" });
-    }
+    if (!user) return res.json({ message: "If exists, email sent" });
 
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -344,97 +196,18 @@ router.post("/forgot-password", async (req, res) => {
     user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const resetLink = `https://yourdomain.com/reset/${token}`;
-
     await transporter.sendMail({
-      from: `"MediAi" <${process.env.MAIL_USER}>`,
-      to: user.email,
+      from: process.env.MAIL_USER,
+      to: email,
       subject: "Reset Password",
-      html: `
-        <h2>Password Reset</h2>
-        <p>Click below:</p>
-        <a href="${resetLink}">${resetLink}</a>
-      `
+      html: `<a href="https://yourdomain.com/reset/${token}">Reset</a>`
     });
 
-    res.json({ message: "Reset link sent" });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error sending email" });
-  }
-});
-
-
-/* ================= RESET PASSWORD ================= */
-router.post("/reset-password/:token", async (req, res) => {
-  try {
-    const user = await User.findOne({
-      resetToken: req.params.token,
-      resetTokenExpiry: { $gt: Date.now() }
-    });
-
-    if (!user) return res.status(400).json({ message: "Invalid token" });
-
-    user.password = await bcrypt.hash(req.body.password, 10);
-    user.resetToken = undefined;
-    user.resetTokenExpiry = undefined;
-
-    await user.save();
-
-    res.json({ message: "Password updated" });
+    res.json({ message: "Email sent" });
 
   } catch {
     res.status(500).json({ message: "Error" });
   }
 });
-
-
-router.post("/verify-otp", async (req, res) => {
-  try {
-    let { phone, otp } = req.body;
-
-    phone = phone.replace(/\D/g, "").slice(-10);
-
-    const user = await User.findOne({ phone });
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    if (user.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    if (!user.otpExpiry || user.otpExpiry < Date.now()) {
-      return res.status(400).json({ message: "OTP expired" });
-    }
-
-    res.json({
-      message: "OTP verified",
-      userId: user.userId
-    });
-
-  } catch (err) {
-    res.status(500).json({ message: "Verification failed" });
-  }
-});
-
-router.get("/test-mail", async (req, res) => {
-  try {
-    await transporter.sendMail({
-      from: `"Test" <${process.env.MAIL_USER}>`,
-      to: process.env.MAIL_USER,
-      subject: "Test Email",
-      text: "Working"
-    });
-
-    res.send("Email sent successfully");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
-  }
-});
-
 
 export default router;
