@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
 import transporter from "../utils/mailer.js";
-import twilioClient from "../utils/twilio.js"; // ✅ FIX
 
 const router = express.Router();
 
@@ -110,12 +109,7 @@ router.post("/send-otp", async (req, res) => {
     user.otpExpiry = Date.now() + 180000;
     await user.save();
 
-    await twilioClient.messages.create({
-      body: `OTP: ${otp}`,
-      from: process.env.TWILIO_PHONE,
-      to: `+91${phone}`
-    });
-
+  
     res.json({ message: "OTP sent" });
 
   } catch (err) {
