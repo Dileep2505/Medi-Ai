@@ -5,6 +5,7 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import client from "../utils/twilio.js";
 import SibApiV3Sdk from "sib-api-v3-sdk";
+import transporter from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -325,17 +326,10 @@ router.post("/profile", async (req, res) => {
 
 router.post("/forgot-password", async (req, res) => {
   try {
-    let { email } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
-    }
-
-    email = email.trim().toLowerCase();
-
-    if (!process.env.BREVO_API_KEY) {
-      console.error("❌ BREVO KEY MISSING");
-      return res.status(500).json({ message: "Email config error" });
     }
 
     const user = await User.findOne({ email });
@@ -348,43 +342,26 @@ router.post("/forgot-password", async (req, res) => {
 
     user.resetToken = token;
     user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
-
     await user.save();
 
-    const resetLink = `https://mediai.indevs.in/reset/${token}`;
+    const resetLink = `https://yourdomain.com/reset/${token}`;
 
-    // 🔥 BREVO SETUP
-    const client = SibApiV3Sdk.ApiClient.instance;
-    const apiKey = client.authentications["api-key"];
-    apiKey.apiKey = process.env.BREVO_API_KEY;
-
-    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-
-    await apiInstance.sendTransacEmail({
-      sender: {
-        email: "medi.ai.0326@gmail.com", // MUST be verified
-        name: "MediAI"
-      },
-      to: [{ email }],
-      subject: "Reset your password",
-      htmlContent: `
+    await transporter.sendMail({
+      from: `"MediAi" <${process.env.MAIL_USER}>`,
+      to: user.email,
+      subject: "Reset Password",
+      html: `
         <h2>Password Reset</h2>
         <p>Click below:</p>
         <a href="${resetLink}">${resetLink}</a>
       `
     });
 
-    console.log("✅ Email sent to:", email);
-
     res.json({ message: "Reset link sent" });
 
   } catch (err) {
-    console.error("🔥 FULL ERROR:", err);
-
-    res.status(500).json({
-      message: "Reset failed",
-      error: err.message
-    });
+    console.error(err);
+    res.status(500).json({ message: "Error sending email" });
   }
 });
 
@@ -442,5 +419,22 @@ router.post("/verify-otp", async (req, res) => {
     res.status(500).json({ message: "Verification failed" });
   }
 });
+
+router.get("/test-mail", async (req, res) => {
+  try {
+    await transporter.sendMail({
+      from: `"Test" <${process.env.MAIL_USER}>`,
+      to: process.env.MAIL_USER,
+      subject: "Test Email",
+      text: "Working"
+    });
+
+    res.send("Email sent successfully");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
 
 export default router;
