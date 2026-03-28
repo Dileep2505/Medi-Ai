@@ -325,13 +325,20 @@ router.post("/profile", async (req, res) => {
 
 router.post("/forgot-password", async (req, res) => {
   try {
-    const { email } = req.body;
+    let { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
     }
 
-    const user = await AuthUser.findOne({ email });
+    email = email.trim().toLowerCase();
+
+    if (!process.env.BREVO_API_KEY) {
+      console.error("❌ BREVO KEY MISSING");
+      return res.status(500).json({ message: "Email config error" });
+    }
+
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.json({ message: "If email exists, reset sent" });
@@ -341,21 +348,21 @@ router.post("/forgot-password", async (req, res) => {
 
     user.resetToken = token;
     user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
+
     await user.save();
 
     const resetLink = `https://mediai.indevs.in/reset/${token}`;
 
-    // 🔥 BREVO SETUP (SAFE VERSION)
+    // 🔥 BREVO SETUP
     const client = SibApiV3Sdk.ApiClient.instance;
     const apiKey = client.authentications["api-key"];
-
     apiKey.apiKey = process.env.BREVO_API_KEY;
 
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
     await apiInstance.sendTransacEmail({
       sender: {
-        email: "medi.ai.0326@gmail.com", // 🔥 MUST BE VERIFIED
+        email: "medi.ai.0326@gmail.com", // MUST be verified
         name: "MediAI"
       },
       to: [{ email }],
@@ -367,17 +374,21 @@ router.post("/forgot-password", async (req, res) => {
       `
     });
 
+    console.log("✅ Email sent to:", email);
+
     res.json({ message: "Reset link sent" });
 
   } catch (err) {
-    console.error("❌ BREVO ERROR FULL:", err);
+    console.error("🔥 FULL ERROR:", err);
 
-    return res.status(500).json({
+    res.status(500).json({
       message: "Reset failed",
       error: err.message
     });
   }
 });
+
+
 /* ================= RESET PASSWORD ================= */
 router.post("/reset-password/:token", async (req, res) => {
   try {
