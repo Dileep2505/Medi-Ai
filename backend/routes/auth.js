@@ -200,9 +200,10 @@ router.post("/forgot-password", async (req, res) => {
 
     res.json({ message: "Email sent" });
 
-  } catch {
-    res.status(500).json({ message: "Error" });
-  }
+  } catch (err) {
+  console.error("EMAIL ERROR:", err); // 🔥 MUST
+  res.status(500).json({ message: err.message });
+}
 });
 
 export default router;

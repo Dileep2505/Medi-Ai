@@ -16,32 +16,56 @@ export default function ForgotPassword({ setAuthScreen }) {
   const [loading, setLoading] = useState(false);
 
   /* ================= EMAIL RESET ================= */
-  const sendEmailReset = async () => {
-    if (!email) return setMessage("Enter email");
+ const sendEmailReset = async () => {
+  setMessage("");
 
+  // ✅ STRONG VALIDATION
+  if (!email || !email.includes("@")) {
+    setMessage("Enter valid email");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email: email.trim().toLowerCase() })
+    });
+
+    // ✅ SAFE PARSE
+    let data;
     try {
-      setLoading(true);
-
-      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message);
-
-      setMessage("Reset link sent to email");
-
-    } catch (err) {
-      setMessage(err.message || "Error");
-    } finally {
-      setLoading(false);
+      data = await res.json();
+    } catch {
+      throw new Error("Server returned invalid response");
     }
-  };
+
+    // ✅ DEBUG LOG (IMPORTANT)
+    console.log("FORGOT RESPONSE:", res.status, data);
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to send reset link");
+    }
+
+    setMessage("✅ Reset link sent to email");
+
+  } catch (err) {
+    console.error("FORGOT ERROR:", err);
+
+    if (err.message.includes("Failed to fetch")) {
+      setMessage("Server unreachable");
+    } else {
+      setMessage(err.message || "Something went wrong");
+    }
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* ================= SEND OTP ================= */
   const sendOtp = async () => {
