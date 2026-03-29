@@ -3,7 +3,7 @@ import { useState } from "react";
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
 export default function ForgotPassword({ setAuthScreen }) {
-  const [method, setMethod] = useState(""); // email | phone
+  const [method, setMethod] = useState("");
   const [step, setStep] = useState(1);
 
   const [email, setEmail] = useState("");
@@ -16,60 +16,42 @@ export default function ForgotPassword({ setAuthScreen }) {
   const [loading, setLoading] = useState(false);
 
   /* ================= EMAIL RESET ================= */
- const sendEmailReset = async () => {
-  setMessage("");
+  const sendEmailReset = async () => {
+    setMessage("");
 
-  // ✅ STRONG VALIDATION
-  if (!email || !email.includes("@")) {
-    setMessage("Enter valid email");
-    return;
-  }
+    if (!email || !email.includes("@")) {
+      return setMessage("Enter valid email");
+    }
 
-  try {
-    setLoading(true);
-
-    const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email: email.trim().toLowerCase() })
-    });
-
-    // ✅ SAFE PARSE
-    let data;
     try {
-      data = await res.json();
-    } catch {
-      throw new Error("Server returned invalid response");
+      setLoading(true);
+
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: email.trim().toLowerCase() })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      setMessage("Reset link sent");
+
+    } catch (err) {
+      setMessage(err.message || "Error");
+    } finally {
+      setLoading(false);
     }
-
-    // ✅ DEBUG LOG (IMPORTANT)
-    console.log("FORGOT RESPONSE:", res.status, data);
-
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to send reset link");
-    }
-
-    setMessage("✅ Reset link sent to email");
-
-  } catch (err) {
-    console.error("FORGOT ERROR:", err);
-
-    if (err.message.includes("Failed to fetch")) {
-      setMessage("Server unreachable");
-    } else {
-      setMessage(err.message || "Something went wrong");
-    }
-
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   /* ================= SEND OTP ================= */
   const sendOtp = async () => {
-    if (!phone) return setMessage("Enter phone");
+    if (!/^\d{10,15}$/.test(phone)) {
+      return setMessage("Invalid phone number");
+    }
 
     try {
       setLoading(true);
@@ -128,7 +110,9 @@ export default function ForgotPassword({ setAuthScreen }) {
 
   /* ================= RESET PASSWORD ================= */
   const resetPassword = async () => {
-    if (!password) return setMessage("Enter new password");
+    if (password.length < 6) {
+      return setMessage("Password must be at least 6 characters");
+    }
 
     try {
       setLoading(true);
@@ -165,20 +149,17 @@ export default function ForgotPassword({ setAuthScreen }) {
 
         {message && <p style={styles.message}>{message}</p>}
 
-        {/* STEP 1 - METHOD SELECT */}
         {!method && (
           <>
             <button style={styles.button} onClick={() => setMethod("email")}>
               Reset via Email
             </button>
-
             <button style={styles.button} onClick={() => setMethod("phone")}>
               Reset via Phone
             </button>
           </>
         )}
 
-        {/* EMAIL FLOW */}
         {method === "email" && (
           <>
             <input
@@ -187,14 +168,12 @@ export default function ForgotPassword({ setAuthScreen }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-
             <button onClick={sendEmailReset} style={styles.button}>
               {loading ? "Sending..." : "Send Reset Link"}
             </button>
           </>
         )}
 
-        {/* PHONE FLOW */}
         {method === "phone" && (
           <>
             {step === 1 && (
@@ -207,7 +186,6 @@ export default function ForgotPassword({ setAuthScreen }) {
                     setPhone(e.target.value.replace(/\D/g, ""))
                   }
                 />
-
                 <button onClick={sendOtp} style={styles.button}>
                   {loading ? "Sending..." : "Send OTP"}
                 </button>
@@ -220,9 +198,10 @@ export default function ForgotPassword({ setAuthScreen }) {
                   style={styles.input}
                   placeholder="Enter OTP"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/\D/g, ""))
+                  }
                 />
-
                 <button onClick={verifyOtp} style={styles.button}>
                   Verify OTP
                 </button>
@@ -238,7 +217,6 @@ export default function ForgotPassword({ setAuthScreen }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-
                 <button onClick={resetPassword} style={styles.button}>
                   Reset Password
                 </button>
@@ -254,47 +232,3 @@ export default function ForgotPassword({ setAuthScreen }) {
     </div>
   );
 }
-
-/* ================= STYLES ================= */
-
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f1f5f9"
-  },
-  card: {
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    width: "320px",
-    textAlign: "center"
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    margin: "10px 0",
-    borderRadius: "6px",
-    border: "1px solid #ccc"
-  },
-  button: {
-    width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    background: "#6c63ff",
-    color: "#fff",
-    border: "none",
-    cursor: "pointer"
-  },
-  message: {
-    color: "red",
-    marginBottom: "10px"
-  },
-  back: {
-    marginTop: "15px",
-    cursor: "pointer",
-    color: "#6c63ff"
-  }
-};
