@@ -287,8 +287,6 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 /* ================= RESET PASSWORD ================= */
-
-const bcrypt = require("bcrypt");
 const User = require("../models/User");
 
 router.post("/reset-password/:token", async (req, res) => {
