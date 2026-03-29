@@ -1,104 +1,175 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Segoe UI", sans-serif;
-}
+/* ================= CONTAINER ================= */
 
 .auth-container {
   display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #5c6bc0, #6a1985);
-}
+  height: 100vh;
+  font-family: "Inter", sans-serif;
 
-/* LEFT PANEL */
+  background: linear-gradient(
+    120deg,
+    #1e3a8a 0%,
+    #2563eb 30%,
+    #93c5fd 60%,
+    #e2e8f0 100%
+  );
+}
+/* ================= LEFT SIDE ================= */
+
 .auth-left {
   flex: 1;
-  color: white;
+  padding: 70px;
+  font-size: 30px;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  padding: 100px;
-  text-align: center;
+
+  color: white;
+
+  background: transparent; /* 🔥 important */
 }
 
-.auth-left h1 {
-  font-size: 50px;
-  margin-bottom: 20px;
-}
-
-.auth-left p {
-  max-width: 300px;
-  line-height: 1.5;
-}
-
-/* RIGHT CARD */
 .auth-right {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-right: 100px;
+  background: transparent; /* 🔥 important */
 }
+
+/* ================= CARD ================= */
 
 .auth-card {
-  width: 200%;
-  max-width: 600px;
-  background: rgb(57, 186, 229);
-  padding: 70px;
-  border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  width: 380px;
+  padding: 36px;
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  box-shadow: 
+    0 25px 60px rgba(0,0,0,0.15),
+    0 10px 20px rgba(0,0,0,0.08);
+
+  text-align: left;
 }
 
+/* ================= TITLE ================= */
+
 .auth-card h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  color: #3f51b5;
+  margin-bottom: 20px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
 }
+
+/* ================= INPUT ================= */
 
 .auth-input {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 14px;
+  margin: 12px 0;
+
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+
+  font-size: 14px;
+
+  background: #f1f5f9;
+  transition: all 0.25s ease;
 }
+
+.auth-input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+}
+
+/* ================= PASSWORD ICON ================= */
+
+.auth-input + span {
+  color: #64748b;
+}
+
+/* ================= BUTTON ================= */
 
 .auth-button {
   width: 100%;
-  padding: 12px;
-  background: #5c6bc0;
-  color: white;
+  padding: 14px;
+  margin-top: 16px;
+
+  border-radius: 12px;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
+
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+
+  font-weight: 600;
+  font-size: 15px;
+
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.25s ease;
+
+  box-shadow: 0 10px 25px rgba(37,99,235,0.4);
 }
 
 .auth-button:hover {
-  background: #3f51b5;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(37,99,235,0.5);
 }
 
+/* ================= GOOGLE BUTTON ================= */
+
+.auth-google {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px;
+
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+
+  background: #ffffff;
+
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.auth-google:hover {
+  background: #f8fafc;
+}
+
+/* ================= FORGOT ================= */
+
+.auth-forgot {
+  text-align: right;
+  font-size: 13px;
+  margin-top: -5px;
+  margin-bottom: 10px;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+/* ================= ERROR ================= */
+
+.auth-error {
+  color: #ef4444;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* ================= LINK ================= */
+
 .auth-link {
-  text-align: center;
-  margin-top: 15px;
+  margin-top: 18px;
   font-size: 14px;
+  text-align: center;
+  color: #475569;
 }
 
 .auth-link span {
-  color: #3f51b5;
+  color: #2563eb;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .auth-container {
-    flex-direction: column;
-  }
-
-  .auth-left {
-    padding: 30px;
-  }
 }

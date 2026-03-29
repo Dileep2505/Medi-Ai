@@ -23,7 +23,9 @@ router.post("/", async (req, res) => {
           {
             role: "system",
             content: `
-Return STRICT JSON:
+You MUST return ONLY valid JSON. No text, no explanation.
+
+Format:
 {
   "healthIssues": [
     {
@@ -54,7 +56,7 @@ Return STRICT JSON:
       }
     );
 
-    const raw = response.data.choices?.[0]?.message?.content;
+    let raw = response.data?.choices?.[0]?.message?.content;
 
     console.log("🧠 RAW AI RESPONSE:", raw);
 
@@ -62,17 +64,40 @@ Return STRICT JSON:
       return res.json({ healthIssues: [], labResults: [] });
     }
 
-    // safer parsing
+    // 🔥 CLEAN RESPONSE (remove markdown, text, etc.)
+    raw = raw
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
     let parsed;
+
     try {
       parsed = JSON.parse(raw);
-    } catch {
+    } catch (err) {
+      console.log("⚠️ Direct parse failed, trying extract...");
+
       const match = raw.match(/\{[\s\S]*\}/);
-      parsed = match ? JSON.parse(match[0]) : null;
+
+      if (!match) {
+        return res.json({ healthIssues: [], labResults: [] });
+      }
+
+      try {
+        parsed = JSON.parse(match[0]);
+      } catch {
+        return res.json({ healthIssues: [], labResults: [] });
+      }
     }
 
-    if (!parsed) {
-      return res.json({ healthIssues: [], labResults: [] });
+    // 🔥 VALIDATION (VERY IMPORTANT)
+    if (!parsed.healthIssues || !Array.isArray(parsed.healthIssues)) {
+      console.log("⚠️ Invalid structure, fixing...");
+      parsed.healthIssues = [];
+    }
+
+    if (!parsed.labResults || !Array.isArray(parsed.labResults)) {
+      parsed.labResults = [];
     }
 
     res.json(parsed);

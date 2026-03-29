@@ -35,35 +35,47 @@ export default Navigation;
 /* ================= STYLES ================= */
 
 const styles = {
+  wrapper: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #e0f2fe, #f0f9ff, #dbeafe)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+
   nav: {
     display: "flex",
-    gap: "16px",
+    gap: "20px",
     padding: "20px 30px",
-    background: "#f1f5f9",
-    justifyContent: "center"
+    borderRadius: "20px",
+    background: "rgba(255, 255, 255, 0.6)",
+    backdropFilter: "blur(10px)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.1)"
   },
 
   btn: {
     padding: "14px 28px",
-    fontSize: "18px",
+    fontSize: "16px",
     fontWeight: "600",
-    borderRadius: "10px",
-    border: "4px solid #ffd700",
-    background: "white",
-    color: "#2563eb",
+    borderRadius: "12px",
+    border: "2px solid transparent",
+    background: "rgba(255,255,255,0.8)",
+    color: "#1e3a8a",
     cursor: "pointer",
-    transition: "0.2s"
+    transition: "all 0.3s ease",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
   },
 
   activeBtn: {
-    padding: "20px",
-    width: "30%",
-    fontSize: "18px",
+    padding: "14px 28px",
+    fontSize: "16px",
     fontWeight: "600",
-    borderRadius: "10px",
-    border: "4px solid #ffd700",
-    background: "#2563eb",
+    borderRadius: "12px",
+    border: "2px solid #2563eb",
+    background: "linear-gradient(135deg, #2563eb, #3b82f6)",
     color: "white",
-    cursor: "pointer"
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    boxShadow: "0 6px 20px rgba(37, 99, 235, 0.4)"
   }
 };

@@ -199,13 +199,77 @@ router.post("/forgot-password", async (req, res) => {
 
     try {
       await sendEmail(
-        email,
-        "Reset Password",
-        `<h3>Reset your password</h3>
-         <a href="${process.env.CLIENT_URL}/#/reset/${token}">
-         Click here to reset password
-         </a>`
-      );
+  email,
+  "🔐 Reset Your MediAI Password",
+  `
+  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:30px;">
+    
+    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:10px; padding:25px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+
+      <h2 style="color:#2563eb; margin-bottom:10px;">MediAI</h2>
+      <p style="color:#555;">AI-Powered Medical Report Analysis</p>
+
+      <hr style="margin:20px 0;" />
+
+      <h3 style="color:#111;">Reset Your Password</h3>
+
+      <p style="color:#444; line-height:1.6;">
+        We received a request to reset your password. Click the button below to proceed.
+      </p>
+
+      <!-- 🔥 BUTTON (HIGHLIGHTED LINK) -->
+      <div style="text-align:center; margin:30px 0;">
+        <a href="${process.env.CLIENT_URL}/#/reset/${token}"
+           style="
+             background:linear-gradient(135deg,#2563eb,#1d4ed8);
+             color:white;
+             padding:14px 24px;
+             text-decoration:none;
+             border-radius:8px;
+             font-weight:bold;
+             display:inline-block;
+             font-size:16px;
+             box-shadow:0 4px 10px rgba(0,0,0,0.2);
+           ">
+          Reset Password
+        </a>
+      </div>
+
+      <!-- 🔗 FALLBACK LINK -->
+      <p style="color:#666; font-size:14px;">
+        If the button doesn't work, copy and paste this link into your browser:
+      </p>
+
+      <p style="
+        background:#f1f5f9;
+        padding:10px;
+        border-radius:6px;
+        font-size:13px;
+        word-break:break-all;
+        color:#2563eb;
+      ">
+        ${process.env.CLIENT_URL}/#/reset/${token}
+      </p>
+
+      <!-- ⚠️ WARNING -->
+      <p style="color:#dc2626; font-size:14px; margin-top:20px;">
+        ⚠️ This link will expire in 15 minutes for security reasons.
+      </p>
+
+      <p style="color:#555; font-size:14px;">
+        If you did not request this, you can safely ignore this email.
+      </p>
+
+      <hr style="margin:20px 0;" />
+
+      <p style="font-size:12px; color:#999;">
+        © ${new Date().getFullYear()} MediAI. All rights reserved.
+      </p>
+
+    </div>
+  </div>
+  `
+);
     } catch (mailErr) {
       console.error("EMAIL FAILED:", mailErr.message);
 
@@ -224,28 +288,49 @@ router.post("/forgot-password", async (req, res) => {
 
 /* ================= RESET PASSWORD ================= */
 
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
+
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
-    const { password } = req.body;
+    const { password, confirmPassword } = req.body;
 
     console.log("RESET TOKEN:", token);
-    console.log("NEW PASSWORD:", password);
 
-    if (!password || password.length < 6) {
-      return res.status(400).json({ message: "Weak password" });
+    // ✅ VALIDATION
+    if (!password || !confirmPassword) {
+      return res.status(400).json({ message: "All fields required" });
     }
 
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    // ✅ STRONG PASSWORD RULE
+    const strongPassword =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+
+    if (!strongPassword.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must include letters, numbers, and special characters"
+      });
+    }
+
+    // ✅ FIND USER
     const user = await User.findOne({
       resetToken: token,
       resetTokenExpiry: { $gt: Date.now() }
     });
 
     if (!user) {
-      console.log("❌ USER NOT FOUND OR TOKEN EXPIRED");
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired token" });
     }
 
+    // ✅ HASH PASSWORD
     const hashed = await bcrypt.hash(password, 10);
 
     user.password = hashed;
@@ -259,10 +344,12 @@ router.post("/reset-password/:token", async (req, res) => {
     res.json({ message: "Password reset successful" });
 
   } catch (err) {
-    console.error("RESET ERROR FULL:", err); // 🔥 IMPORTANT
+    console.error("RESET ERROR FULL:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+module.exports = router;
 
 /* ================= TEST ================= */
 router.get("/test", (req, res) => {

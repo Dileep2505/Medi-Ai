@@ -255,46 +255,115 @@ export default function ForgotPassword({ setAuthScreen }) {
   );
 }
 
-/* ================= STYLES ================= */
-
 const styles = {
   container: {
-    height: "100vh",
+    minHeight: "100vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "#f1f5f9"
+
+    background: `
+      radial-gradient(circle at 20% 30%, rgba(37,99,235,0.2), transparent),
+      radial-gradient(circle at 80% 70%, rgba(14,165,233,0.2), transparent),
+      linear-gradient(135deg, #020617, #0f172a)
+    `,
   },
+
   card: {
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    width: "320px",
+    width: "360px",
+    padding: "32px",
+    borderRadius: "20px",
+
+    background: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(20px)",
+
+    boxShadow: "0 20px 50px rgba(0,0,0,0.4)",
+    border: "1px solid rgba(255,255,255,0.1)",
+
+    color: "#fff",
     textAlign: "center"
   },
+
+  title: {
+    fontSize: "22px",
+    fontWeight: "700",
+    marginBottom: "8px"
+  },
+
+  subtitle: {
+    fontSize: "13px",
+    opacity: 0.7,
+    marginBottom: "20px"
+  },
+
+  stepIndicator: {
+    fontSize: "12px",
+    marginBottom: "15px",
+    color: "#93c5fd"
+  },
+
   input: {
     width: "100%",
-    padding: "10px",
+    padding: "12px 14px",
     margin: "10px 0",
-    borderRadius: "6px",
-    border: "1px solid #ccc"
+
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.2)",
+
+    background: "rgba(255,255,255,0.05)",
+    color: "#fff",
+
+    outline: "none",
+    fontSize: "14px",
+    transition: "0.3s"
   },
+
   button: {
     width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    background: "#6c63ff",
-    color: "#fff",
+    padding: "12px",
+    marginTop: "12px",
+
+    borderRadius: "10px",
     border: "none",
+
+    background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+    color: "#fff",
+
+    fontWeight: "600",
+    cursor: "pointer",
+
+    transition: "all 0.3s ease",
+    boxShadow: "0 8px 20px rgba(37,99,235,0.4)"
+  },
+
+  secondaryBtn: {
+    width: "100%",
+    padding: "12px",
+    marginTop: "10px",
+
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.2)",
+
+    background: "transparent",
+    color: "#fff",
+
     cursor: "pointer"
   },
+
   message: {
-    color: "red",
-    marginBottom: "10px"
+    marginBottom: "10px",
+    fontSize: "13px",
+    color: "#f87171"
   },
+
+  success: {
+    color: "#4ade80"
+  },
+
   back: {
-    marginTop: "15px",
+    marginTop: "18px",
+    fontSize: "13px",
     cursor: "pointer",
-    color: "#6c63ff"
+    color: "#93c5fd"
   }
 };

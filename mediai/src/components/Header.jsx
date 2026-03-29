@@ -72,37 +72,42 @@ const Header = () => {
 
 export default Header;
 
-/* ================= STYLES ================= */
-
 const styles = {
   header: {
-    background: "#801BC4",
-    color: "#ffffff",
-    padding: "18px 38px",
-    borderRadius: 12,
+    width: "100%",
+    padding: "16px 32px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
+
+    background: "linear-gradient(135deg, #0f172a, #1e3a8a, #2563eb)",
+    color: "#fff",
+
+    borderRadius: "16px",
+    boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+    backdropFilter: "blur(8px)"
   },
 
   leftSection: {
     display: "flex",
     alignItems: "center",
-    gap: "20px"
+    gap: "16px"
   },
 
   logoCircle: {
-    width: "80px",
-    height: "80px",
+    width: "56px",
+    height: "56px",
     borderRadius: "50%",
     overflow: "hidden",
-    background: "#E00B0B",
+
+    background: "rgba(255,255,255,0.1)",
+    border: "2px solid rgba(255,255,255,0.3)",
+
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    border: "4px solid White",
-    boxShadow: "1 4px 6px rgba(0,2,0,0.2)"
+
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
   },
 
   logo: {
@@ -113,46 +118,54 @@ const styles = {
 
   title: {
     margin: 0,
-    fontSize: "40px",
-    fontWeight: "700"
+    fontSize: "24px",
+    fontWeight: "700",
+    letterSpacing: "0.5px"
   },
 
   subtitle: {
     margin: 0,
     fontSize: "12px",
-    opacity: 0.9
+    opacity: 0.8
   },
 
   rightSection: {
     display: "flex",
     alignItems: "center",
-    gap: "20px",
-    cursor: "pointer"
+    gap: "12px",
+    cursor: "pointer",
+    padding: "8px 12px",
+    borderRadius: "12px",
+    transition: "all 0.3s ease"
   },
 
   doctorName: {
-    fontSize: "35px",
+    fontSize: "16px",
     fontWeight: "600"
   },
 
   avatar: {
-    width: "60px",
-    height: "60px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
-    background: "#1d4ed8",
+
+    background: "linear-gradient(135deg, #3b82f6, #60a5fa)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+
     fontWeight: "bold",
-    fontSize: "24px",
-    color: "#fff"
+    fontSize: "16px",
+    color: "#fff",
+
+    boxShadow: "0 4px 12px rgba(59,130,246,0.5)"
   },
 
   avatarImage: {
-    width: "60px",
-    height: "60px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     objectFit: "cover",
-    border: "4px solid black"
+    border: "2px solid rgba(255,255,255,0.4)"
   }
 };

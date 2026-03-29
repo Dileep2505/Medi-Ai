@@ -185,7 +185,8 @@ export default function Register({
           )}
           {usernameStatus === "taken" && (
             <div>
-              <p style={{ color: "red" }}>✖ Taken</p>
+              {error && <p className="auth-error">{error}</p>}
+{success && <p className="auth-success">{success}</p>}
               {suggestions.map((s, i) => (
                 <span
                   key={i}

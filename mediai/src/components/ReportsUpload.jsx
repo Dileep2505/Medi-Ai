@@ -72,79 +72,115 @@ const ReportsUpload = ({
 
 export default ReportsUpload;
 
-/* ========== STYLE =============*/
+/* ========== PREMIUM MEDICAL UPLOAD UI =============*/
 
 const container = {
-  maxWidth: "1000px",
+  maxWidth: "950px",
   margin: "0 auto",
-  padding: "20px",
-  width: "100%"
+  padding: "25px",
+  width: "100%",
+
+  /* 👇 HEALTH-APP BACKGROUND */
+  background: "linear-gradient(135deg, #f0f9ff, #ecfeff)",
+  borderRadius: "20px",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.08)"
 };
 
+/* TITLE */
 const title = {
-  fontSize: 30,
-  fontWeight: 600,
-  marginBottom: 15
+  fontSize: "26px",
+  fontWeight: "700",
+  marginBottom: "15px",
+  color: "#0f172a",
+  textAlign: "center"
 };
 
+/* MODE BUTTON ROW */
 const modeRow = {
   display: "flex",
-  gap: "10px",
-  marginBottom: "10px",
-  flexWrap: "wrap" // 👈 allows stacking on small screens
+  gap: "12px",
+  marginBottom: "15px",
+  flexWrap: "wrap"
 };
 
+/* ACTIVE BUTTON */
 const activeMode = {
-  flex: "1 1 45%", // 👈 responsive width
-  minWidth: "140px",
-  fontSize: "18px",
-  padding: "12px",
-  background: "#C41B5F",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  fontWeight: 600
-};
-
-const modeBtn = {
   flex: "1 1 45%",
   minWidth: "140px",
   fontSize: "16px",
   padding: "12px",
-  background: "#C41B5F",
-  color: "white",
+  borderRadius: "10px",
   border: "none",
-  borderRadius: "8px",
-  fontWeight: 500
+
+  background: "linear-gradient(135deg, #2563eb, #06b6d4)",
+  color: "#fff",
+
+  fontWeight: "600",
+  boxShadow: "0 6px 15px rgba(0,0,0,0.2)"
 };
 
+/* NORMAL BUTTON */
+const modeBtn = {
+  flex: "1 1 45%",
+  minWidth: "140px",
+  fontSize: "15px",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid #cbd5f5",
+
+  background: "#ffffff",
+  color: "#2563eb",
+
+  fontWeight: "500",
+  cursor: "pointer",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
+};
+
+/* TEXT AREA */
 const textarea = {
   width: "100%",
-  minHeight: "180px",
+  minHeight: "200px",
+  marginTop: "10px",
+  padding: "14px",
+  borderRadius: "12px",
+  border: "1px solid #d1d5db",
+  fontSize: "15px",
+  resize: "vertical",
+
+  background: "#ffffff",
+  boxShadow: "inset 0 2px 6px rgba(0,0,0,0.05)"
+};
+
+/* FILE LIST */
+const fileList = {
   marginTop: "15px",
   padding: "12px",
-  borderRadius: "8px",
-  border: "3px solid #e5e7eb",
-  fontSize: "16px",
-  resize: "vertical"
+  borderRadius: "10px",
+  background: "#f8fafc",
+  border: "1px dashed #cbd5e1",
+  color: "#334155",
+  fontSize: "14px"
 };
 
-const fileList = {
-  marginTop: 10,
-  color: "#374151"
-};
-
+/* PROCESS BUTTON */
 const processBtn = {
   marginTop: "30px",
-  width: "100%", // 👈 THIS is the correct way
-  maxWidth: "400px",
+  width: "100%",
+  maxWidth: "420px",
   display: "block",
   marginLeft: "auto",
   marginRight: "auto",
+
   padding: "14px",
-  background: "#5BDE10",
-  border: "3px solid #4C6A78",
+  borderRadius: "14px",
+  border: "none",
+
+  background: "linear-gradient(135deg, #22c55e, #16a34a)",
   color: "white",
-  borderRadius: "15px",
-  fontSize: "20px"
+
+  fontSize: "18px",
+  fontWeight: "600",
+  cursor: "pointer",
+
+  boxShadow: "0 8px 20px rgba(0,0,0,0.2)"
 };

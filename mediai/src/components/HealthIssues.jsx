@@ -31,7 +31,7 @@ const HealthIssues = ({ aiAnalysis = {} }) => {
       {/* ================= CONDITIONS ================= */}
       {issues.length > 0 && (
         <>
-          <h2 style={sectionTitle}>Extracted Clinical Findings</h2>
+          <h2 style={mainTitle}>Extracted Clinical Findings</h2>
 
           <h3 style={subTitle}>
             Health Conditions Found ({issues.length})
@@ -134,17 +134,31 @@ const HealthIssues = ({ aiAnalysis = {} }) => {
   );
 };
 
+const Section = ({ label, text }) => {
+  if (!text) return null;
+
+  return (
+    <div style={{ marginTop: "10px" }}>
+      <strong>{label}</strong>
+      <p style={{ margin: "4px 0 0", color: "#334155" }}>{text}</p>
+    </div>
+  );
+};
+
 export default HealthIssues;
 
-/* ================= PREMIUM MEDICAL UI ================= */
+/* ================= MODERN MEDICAL UI ================= */
 
 const container = {
   maxWidth: "900px",
   width: "100%",
   margin: "0 auto",
-  padding: "20px",
+  padding: "25px",
   borderRadius: "20px",
-  background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
+
+  /* 👇 HEALTH-APP STYLE BACKGROUND */
+  background: "linear-gradient(135deg, #f0f9ff, #ecfeff)",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.08)"
 };
 
 /* EMPTY STATE */
@@ -155,18 +169,19 @@ const emptyState = {
   fontSize: "16px"
 };
 
-/* SECTION TITLES */
-const sectionTitle = {
+/* MAIN TITLE */
+const mainTitle = {
   fontSize: "24px",
   fontWeight: "700",
   marginBottom: "12px",
   padding: "14px 18px",
-  borderRadius: "12px",
+  borderRadius: "14px",
   background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
   color: "#fff",
   boxShadow: "0 8px 20px rgba(0,0,0,0.15)"
 };
 
+/* SUB TITLE */
 const subTitle = {
   marginTop: "20px",
   padding: "12px 16px",
@@ -183,7 +198,10 @@ const conditionCard = {
   padding: "20px",
   marginTop: "18px",
   boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+
+  /* 👇 LEFT COLOR BAR (IMPORTANT VISUAL) */
   borderLeft: "6px solid #22c55e",
+
   transition: "0.2s"
 };
 
@@ -222,14 +240,14 @@ const severityBadge = (sev) => ({
   boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
 });
 
-/* TEXT BLOCKS */
+/* TEXT */
 const bulletTitle = {
   fontWeight: "600",
   marginTop: "14px",
   color: "#1e293b"
 };
 
-/* GOOD NEWS */
+/* GOOD NEWS BOX */
 const goodNewsBox = {
   background: "#ecfdf5",
   padding: "12px",
@@ -267,5 +285,6 @@ const medButton = {
   border: "none",
   cursor: "pointer",
   boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+
   transition: "0.2s"
 };

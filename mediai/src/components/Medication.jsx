@@ -77,85 +77,94 @@ const Medication = ({ meds }) => {
 
 export default Medication;
 
-/* ===== STYLES ===== */
+/* ===== CLEAN PREMIUM MEDICAL UI ===== */
+
 const pageCenter = {
   minHeight: "50vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "#F2F2F2"
+  padding: "20px",
+
+  /* 👇 MEDICAL-STYLE BACKGROUND (SOFT + TRUST) */
+  background: "linear-gradient(135deg, #f8fafc, #e0f2fe)"
 };
 
+/* MAIN CONTAINER */
 const container = {
   width: "100%",
-  padding: 20,
-  borderRadius: 12,
-  maxWidth: 800
+  maxWidth: "900px",
+  padding: "30px",
+  borderRadius: "20px",
+
+  background: "#ffffff",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.08)"
 };
 
+/* TITLE */
 const title = {
-  fontSize: 30,
-  margin: "0 auto",
-  background: "#26E0A8",
-  padding: "20px 20px 20px 20px",
-  borderRadius: 12,
-  fontWeight: "600",
-  color: "#000",
-  width: "80%",          // 👈 fill available space
-  maxWidth: "700px",      // 👈 control size
-
-  margin: "15px auto", 
-  marginBottom: "5px"
+  fontSize: "26px",
+  textAlign: "center",
+  fontWeight: "700",
+  marginBottom: "25px",
+  color: "#0f172a"
 };
 
+/* CARD */
+const card = {
+  borderRadius: "16px",
+  padding: "20px",
+  marginTop: "16px",
+
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+
+  boxShadow: "0 8px 20px rgba(0,0,0,0.05)"
+};
+
+/* CONDITION NAME */
 const conditionTitle = {
-  fontSize: "30px",
-  fontWeight: "500",
-  marginBottom: "15px",
-  color: "#ffffff"
+  fontSize: "20px",
+  fontWeight: "600",
+  marginBottom: "10px",
+  color: "#0369a1"
 };
 
+/* LIST */
 const drugList = {
   paddingLeft: "20px",
-  margin: 10
+  margin: 0,
+  fontSize: "15px",
+  color: "#334155",
+  lineHeight: "1.7"
 };
 
 const drugItem = {
-  marginBottom: "6px"
+  marginBottom: "8px"
 };
 
-const card = {
-  fontSize: 20,
-  border: "1px solid #ddd",
-  padding: "20px 20px 20px 30px",
-  borderRadius: 12,
-
-  width: "80%",          // 👈 fill available space
-  maxWidth: "700px",      // 👈 control size
-
-  margin: "15px auto",    // 👈 center it properly
-
-  background: "#26BBE0",
-  marginBottom: "10px",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-};
-
+/* INPUT BOX */
 const box = {
-  background: "#ff2d2d",
-  padding: "25px 35px",
-  borderRadius: "20px",
-  width: "450px",
+  width: "100%",
+  maxWidth: "420px",
+  padding: "25px",
+  borderRadius: "18px",
+
+  background: "#ffffff",
+  boxShadow: "0 15px 40px rgba(0,0,0,0.1)",
+
   display: "flex",
   flexDirection: "column",
-  gap: "20px"
+  gap: "15px"
 };
 
+/* INPUT */
 const input = {
   width: "100%",
-  padding: "14px",
-  borderRadius: "12px",
-  border: "none",
-  fontSize: "16px",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid #d1d5db",
+  fontSize: "15px",
   outline: "none",
-  background: "#e5e7eb"
+  background: "#f9fafb"
 };
