@@ -86,3 +86,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
 });
+
+console.log("ENV CHECK:", {
+  jwt: process.env.JWT_SECRET ? "OK" : "MISSING",
+  mongo: process.env.MONGO_URI ? "OK" : "MISSING",
+  mail: process.env.MAIL_USER ? "OK" : "MISSING"
+});
