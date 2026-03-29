@@ -3,23 +3,26 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+/* ================= HELPERS ================= */
+const normalizeEmail = (email) =>
+  email ? email.trim().toLowerCase() : "";
+
+const cleanPhone = (phone) =>
+  phone ? phone.replace(/\D/g, "") : "";
+
 /* ================= GET PROFILE ================= */
 router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
+    if (!userId) {
+      return res.status(400).json({ message: "userId required" });
+    }
+
     const user = await User.findOne({ userId });
 
     if (!user) {
-      return res.json({
-        userId,
-        fullName: "",
-        email: "",
-        phone: "",
-        gender: "",
-        bloodGroup: "",
-        photo: ""
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
     return res.json({
@@ -41,7 +44,7 @@ router.get("/:userId", async (req, res) => {
 /* ================= CREATE / UPDATE PROFILE ================= */
 router.post("/", async (req, res) => {
   try {
-    const {
+    let {
       userId,
       fullName,
       email,
@@ -55,16 +58,26 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "userId required" });
     }
 
+    // ✅ sanitize
+    email = normalizeEmail(email);
+    phone = cleanPhone(phone);
+    fullName = fullName?.trim();
+
+    if (phone && !/^\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone" });
+    }
+
     let user = await User.findOne({ userId });
 
     if (user) {
-      // ✅ UPDATE (SAFE MERGE)
-      user.fullName = fullName ?? user.fullName;
-      user.email = email ?? user.email;
-      user.gender = gender ?? user.gender;
-      user.bloodGroup = bloodGroup ?? user.bloodGroup;
-      user.phone = phone ?? user.phone;
-      user.photo = photo ?? user.photo;
+      // ✅ UPDATE
+      if (fullName !== undefined) user.fullName = fullName;
+      if (email !== undefined) user.email = email;
+      if (gender !== undefined) user.gender = gender;
+      if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
+      if (phone !== undefined) user.phone = phone;
+      if (photo !== undefined) user.photo = photo;
+
     } else {
       // ✅ CREATE
       user = new User({
@@ -92,6 +105,11 @@ router.post("/", async (req, res) => {
 
   } catch (err) {
     console.error("SAVE ERROR:", err);
+
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Duplicate data" });
+    }
+
     res.status(500).json({ message: "Save failed" });
   }
 });
