@@ -2,19 +2,14 @@ import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT),
-  secure: false,
+  port: 587,
+  secure: false, // MUST be false for 587
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS
-  }
-});
-
-transporter.verify((err) => {
-  if (err) {
-    console.error("❌ MAIL ERROR:", err);
-  } else {
-    console.log("✅ MAIL READY");
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
