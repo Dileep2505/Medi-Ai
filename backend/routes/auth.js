@@ -5,7 +5,6 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import transporter from "../utils/mailer.js";
 
-
 const router = express.Router();
 
 /* ================= HELPERS ================= */
@@ -14,31 +13,31 @@ const normalizeUsername = (username) => username.trim().toLowerCase();
 
 /* ================= USERNAME ================= */
 const generateUsername = async (fullName) => {
-  let base = fullName.toLowerCase().replace(/[^a-z ]/g, "").trim().split(" ").join("_");
+  let base = fullName
+    .toLowerCase()
+    .replace(/[^a-z ]/g, "")
+    .trim()
+    .split(" ")
+    .join("_");
+
   if (!base) base = "user";
 
-  const variants = [
-    base,
-    base + "_" + Math.floor(100 + Math.random() * 900),
-    base + "." + Math.floor(100 + Math.random() * 900),
-    base + "_" + Math.floor(1000 + Math.random() * 9000)
-  ];
+  for (let i = 0; i < 5; i++) {
+    const candidate =
+      i === 0
+        ? base
+        : `${base}_${Math.floor(1000 + Math.random() * 9000)}`;
 
-  for (let u of variants) {
-    if (!(await User.findOne({ username: u }))) return u;
+    const exists = await User.findOne({ username: candidate });
+    if (!exists) return candidate;
   }
 
-  return base + "_" + Date.now().toString().slice(-5);
+  return `${base}_${Date.now()}`;
 };
 
 /* ================= USER ID ================= */
 const generateUserId = () => {
-  const letters = Array.from({ length: 4 }, () =>
-    String.fromCharCode(97 + Math.random() * 26)
-  ).join("");
-
-  const numbers = Math.floor(1000 + Math.random() * 9000);
-  return `${letters}_${numbers}`;
+  return crypto.randomBytes(6).toString("hex"); // strong + unique
 };
 
 /* ================= REGISTER ================= */
@@ -110,7 +109,8 @@ router.post("/send-otp", async (req, res) => {
     user.otpExpiry = Date.now() + 180000;
     await user.save();
 
-  
+    console.log(`📱 OTP for ${phone}: ${otp}`); // TEMP debug (replace with SMS)
+
     res.json({ message: "OTP sent" });
 
   } catch (err) {
@@ -132,9 +132,14 @@ router.post("/verify-otp", async (req, res) => {
     if (user.otpExpiry < Date.now())
       return res.status(400).json({ message: "OTP expired" });
 
+    // clear OTP after success
+    user.otp = null;
+    user.otpExpiry = null;
+    await user.save();
+
     res.json({ message: "Verified", userId: user.userId });
 
-  } catch {
+  } catch (err) {
     res.status(500).json({ message: "Verification failed" });
   }
 });
@@ -148,12 +153,10 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
-    let input = identifier.trim().replace(/\D/g, "");
-
     let user;
 
-    if (/^\d{10,15}$/.test(input)) {
-      user = await User.findOne({ phone: input });
+    if (/^\d{10,15}$/.test(identifier)) {
+      user = await User.findOne({ phone: identifier });
     } else if (identifier.includes("@")) {
       user = await User.findOne({ email: normalizeEmail(identifier) });
     } else {
@@ -195,15 +198,15 @@ router.post("/forgot-password", async (req, res) => {
       from: process.env.MAIL_USER,
       to: email,
       subject: "Reset Password",
-      html: `<a href="https://yourdomain.com/reset/${token}">Reset</a>`
+      html: `<a href="${process.env.CLIENT_URL}/reset/${token}">Reset Password</a>`
     });
 
     res.json({ message: "Email sent" });
 
   } catch (err) {
-  console.error("EMAIL ERROR:", err); // 🔥 MUST
-  res.status(500).json({ message: err.message });
-}
+    console.error("EMAIL ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 export default router;
