@@ -180,12 +180,15 @@ router.post("/login", async (req, res) => {
 });
 
 /* ================= FORGOT PASSWORD ================= */
+/* ================= FORGOT PASSWORD ================= */
 router.post("/forgot-password", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
 
     const user = await User.findOne({ email });
-    if (!user) return res.json({ message: "If exists, email sent" });
+    if (!user) {
+      return res.json({ message: "If exists, email sent" });
+    }
 
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -194,12 +197,15 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
 
     try {
-      await transporter.sendMail({
-        from: process.env.MAIL_USER,
+      const info = await transporter.sendMail({
+        from: `"MediAI" <${process.env.MAIL_USER}>`,
         to: email,
         subject: "Reset Password",
         html: `<a href="${process.env.CLIENT_URL}/reset/${token}">Reset Password</a>`
       });
+
+      console.log("MAIL INFO:", info);
+
     } catch (mailErr) {
       console.error("MAIL ERROR:", mailErr.message);
 
