@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+const API_BASE = "https://medi-ai-backend-226z.onrender.com";
+
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -9,6 +11,11 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
 
   const reset = async () => {
+    if (!token) {
+      alert("Invalid reset link");
+      return;
+    }
+
     if (!password || password.length < 6) {
       alert("Password must be at least 6 characters");
       return;
@@ -17,24 +24,29 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/reset-password/${token}`, {
+      const res = await fetch(`${API_BASE}/api/auth/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password })
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
       if (!res.ok) {
-        alert(data.message || "Reset failed");
-        return;
+        throw new Error(data.message || "Reset failed");
       }
 
       alert("Password updated successfully");
-      navigate("/"); // go back to login
+      navigate("/");
 
     } catch (err) {
-      alert("Server error");
+      console.error(err);
+      alert(err.message || "Server error");
     } finally {
       setLoading(false);
     }
@@ -58,6 +70,8 @@ export default function ResetPassword() {
     </div>
   );
 }
+
+/* ================= STYLES ================= */
 
 const container = {
   maxWidth: 400,
