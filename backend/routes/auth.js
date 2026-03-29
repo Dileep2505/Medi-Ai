@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
-import transporter from "../utils/mailer.js";
+import { sendEmail } from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -180,12 +180,13 @@ router.post("/login", async (req, res) => {
 });
 
 /* ================= FORGOT PASSWORD ================= */
-/* ================= FORGOT PASSWORD ================= */
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
 
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.json({ message: "If exists, email sent" });
     }
@@ -197,19 +198,17 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
 
     try {
-      const info = await transporter.sendMail({
-        from: `"MediAI" <${process.env.MAIL_USER}>`,
-        to: email,
-        subject: "Reset Password",
-        html: `<a href="${process.env.CLIENT_URL}/reset/${token}">Reset Password</a>`
-      });
-
-      console.log("MAIL INFO:", info);
-
+      await sendEmail(
+        email,
+        "Reset Password",
+        `<h3>Reset your password</h3>
+         <a href="${process.env.CLIENT_URL}/reset/${token}">
+         Click here to reset password
+         </a>`
+      );
     } catch (mailErr) {
-      console.error("MAIL ERROR:", mailErr.message);
+      console.error("EMAIL FAILED:", mailErr.message);
 
-      // ✅ DO NOT BREAK FLOW
       return res.json({
         message: "Reset link generated (email failed)"
       });
