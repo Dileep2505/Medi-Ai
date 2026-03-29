@@ -136,106 +136,136 @@ const HealthIssues = ({ aiAnalysis = {} }) => {
 
 export default HealthIssues;
 
-/* ================= STYLES ================= */
+/* ================= PREMIUM MEDICAL UI ================= */
 
 const container = {
-  maxWidth: 800,
+  maxWidth: "900px",
   width: "100%",
-  margin: "0 auto"
+  margin: "0 auto",
+  padding: "20px",
+  borderRadius: "20px",
+  background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
 };
 
+/* EMPTY STATE */
 const emptyState = {
   textAlign: "center",
-  marginTop: 40,
-  color: "#555",
-  fontSize: 16
+  marginTop: "40px",
+  color: "#64748b",
+  fontSize: "16px"
 };
 
+/* SECTION TITLES */
 const sectionTitle = {
-  fontSize: 22,
-  marginBottom: 10,
-  background: "#1CBDB7",
-  padding: "10px 16px",
-  borderRadius: 6,
-  color: "#000"
+  fontSize: "24px",
+  fontWeight: "700",
+  marginBottom: "12px",
+  padding: "14px 18px",
+  borderRadius: "12px",
+  background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+  color: "#fff",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.15)"
 };
 
 const subTitle = {
-  marginTop: 20,
-  background: "#1CBDB7",
-  padding: "10px 16px",
-  borderRadius: 6,
-  color: "#000"
+  marginTop: "20px",
+  padding: "12px 16px",
+  borderRadius: "10px",
+  background: "#e0f2fe",
+  color: "#0369a1",
+  fontWeight: "600"
 };
 
+/* CONDITION CARD */
 const conditionCard = {
-  border: "2px solid #facc15",
-  background: "#fffbeb",
-  padding: 18,
-  borderRadius: 8,
-  marginTop: 16
+  borderRadius: "16px",
+  background: "#ffffff",
+  padding: "20px",
+  marginTop: "18px",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+  borderLeft: "6px solid #22c55e",
+  transition: "0.2s"
 };
 
+/* LAB CARD */
 const labCard = {
-  border: "1px solid #fb923c",
-  background: "#fff7ed",
-  padding: 16,
-  borderRadius: 8,
-  marginTop: 14
+  borderRadius: "14px",
+  background: "#ffffff",
+  padding: "18px",
+  marginTop: "16px",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+  borderLeft: "6px solid #f97316"
 };
 
+/* HEADER ROW */
 const headerRow = {
   display: "flex",
-  justifyContent: "space-between"
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: "10px",
+  flexWrap: "wrap"
 };
 
+/* BADGE */
 const severityBadge = (sev) => ({
   background:
     sev === "SEVERE"
-      ? "#dc2626"
+      ? "#ef4444"
       : sev === "MODERATE"
       ? "#f59e0b"
       : "#22c55e",
   color: "white",
-  padding: "4px 12px",
-  borderRadius: 20,
-  fontSize: 12
+  padding: "6px 14px",
+  borderRadius: "999px",
+  fontSize: "12px",
+  fontWeight: "600",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
 });
 
+/* TEXT BLOCKS */
 const bulletTitle = {
-  fontWeight: "bold",
-  marginTop: 12
+  fontWeight: "600",
+  marginTop: "14px",
+  color: "#1e293b"
 };
 
+/* GOOD NEWS */
 const goodNewsBox = {
   background: "#ecfdf5",
-  padding: 12,
-  borderRadius: 6,
-  marginTop: 12
+  padding: "12px",
+  borderRadius: "10px",
+  marginTop: "14px",
+  borderLeft: "4px solid #22c55e",
+  color: "#065f46",
+  fontWeight: "500"
 };
 
+/* LAB ALERT */
 const labAlert = {
-  marginTop: 10,
+  marginTop: "10px",
   color: "#dc2626",
-  fontWeight: "bold"
+  fontWeight: "600"
 };
 
+/* BUTTON */
 const medButton = {
-  marginTop: 30,
-  background: "#31BD1C",
-  color: "white",
-  padding: "15px 187px",
-  borderRadius: 6,
-  fontSize: 25,
-  border: "3px solid #F2F21D",
-  cursor: "pointer"
-};
+  marginTop: "30px",
+  width: "100%",
+  maxWidth: "420px",
+  display: "block",
+  marginLeft: "auto",
+  marginRight: "auto",
 
-const Section = ({ label, text }) => (
-  text ? (
-    <p>
-      <strong>{label}</strong><br />
-      {text}
-    </p>
-  ) : null
-);
+  background: "linear-gradient(135deg, #22c55e, #16a34a)",
+  color: "white",
+
+  padding: "14px",
+  borderRadius: "12px",
+  fontSize: "18px",
+  fontWeight: "600",
+
+  border: "none",
+  cursor: "pointer",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+  transition: "0.2s"
+};

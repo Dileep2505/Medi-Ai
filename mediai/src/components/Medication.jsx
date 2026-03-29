@@ -97,24 +97,27 @@ const title = {
   fontSize: 30,
   margin: "0 auto",
   background: "#26E0A8",
-  padding: "20px 20px 20px 150px",
+  padding: "20px 20px 20px 20px",
   borderRadius: 12,
-  fontWeight: "750",
+  fontWeight: "600",
   color: "#000",
-  
+  width: "80%",          // 👈 fill available space
+  maxWidth: "700px",      // 👈 control size
+
+  margin: "15px auto", 
   marginBottom: "5px"
 };
 
 const conditionTitle = {
   fontSize: "30px",
-  fontWeight: "900",
+  fontWeight: "500",
   marginBottom: "15px",
   color: "#ffffff"
 };
 
 const drugList = {
   paddingLeft: "20px",
-  margin: 0
+  margin: 10
 };
 
 const drugItem = {
@@ -124,20 +127,24 @@ const drugItem = {
 const card = {
   fontSize: 20,
   border: "1px solid #ddd",
-  padding: "30px 30px 30px 45px",
-  borderRadius: 10,
-  marginTop: 15,
+  padding: "20px 20px 20px 30px",
+  borderRadius: 12,
+
+  width: "80%",          // 👈 fill available space
+  maxWidth: "700px",      // 👈 control size
+
+  margin: "15px auto",    // 👈 center it properly
+
   background: "#26BBE0",
   marginBottom: "10px",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-  
+  boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
 };
 
 const box = {
   background: "#ff2d2d",
-  padding: "35px 40px",
+  padding: "25px 35px",
   borderRadius: "20px",
-  width: "520px",
+  width: "450px",
   display: "flex",
   flexDirection: "column",
   gap: "20px"

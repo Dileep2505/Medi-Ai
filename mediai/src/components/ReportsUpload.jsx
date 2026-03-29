@@ -72,10 +72,13 @@ const ReportsUpload = ({
 
 export default ReportsUpload;
 
+/* ========== STYLE =============*/
+
 const container = {
-  maxWidth: 1000,
-  margin: "auto",
-  padding: 20
+  maxWidth: "1000px",
+  margin: "0 auto",
+  padding: "20px",
+  width: "100%"
 };
 
 const title = {
@@ -86,41 +89,44 @@ const title = {
 
 const modeRow = {
   display: "flex",
-  gap: 10,
-  marginBottom: 10
+  gap: "10px",
+  marginBottom: "10px",
+  flexWrap: "wrap" // 👈 allows stacking on small screens
 };
 
 const activeMode = {
-  flex: 1,
-  fontSize: 25,
-  padding: 15,
+  flex: "1 1 45%", // 👈 responsive width
+  minWidth: "140px",
+  fontSize: "18px",
+  padding: "12px",
   background: "#C41B5F",
   color: "white",
   border: "none",
-  borderRadius: 8,
+  borderRadius: "8px",
   fontWeight: 600
 };
 
 const modeBtn = {
-  flex: 1,
-  padding: 12,
-  fontSize: 20,
+  flex: "1 1 45%",
+  minWidth: "140px",
+  fontSize: "16px",
+  padding: "12px",
   background: "#C41B5F",
   color: "white",
   border: "none",
-  borderRadius: 8,
+  borderRadius: "8px",
   fontWeight: 500
 };
 
-
 const textarea = {
   width: "100%",
-  height: 250,
-  marginTop: 15,
-  padding: 12,
-  borderRadius: 8,
+  minHeight: "180px",
+  marginTop: "15px",
+  padding: "12px",
+  borderRadius: "8px",
   border: "3px solid #e5e7eb",
-  fontSize: 18
+  fontSize: "16px",
+  resize: "vertical"
 };
 
 const fileList = {
@@ -129,12 +135,16 @@ const fileList = {
 };
 
 const processBtn = {
-  marginTop: 30,
-  margin: "0 auto",
-  padding: "15px 247px",
+  marginTop: "30px",
+  width: "100%", // 👈 THIS is the correct way
+  maxWidth: "400px",
+  display: "block",
+  marginLeft: "auto",
+  marginRight: "auto",
+  padding: "14px",
   background: "#5BDE10",
   border: "3px solid #4C6A78",
   color: "white",
-  borderRadius: 15,
-  fontSize: 30,
+  borderRadius: "15px",
+  fontSize: "20px"
 };

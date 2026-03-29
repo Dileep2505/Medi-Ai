@@ -99,9 +99,9 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* HEADER */}
         <div style={header}>
-          <h3>Profile</h3>
-          <span style={closeBtn} onClick={closeProfile}>✕</span>
-        </div>
+  <h3 style={title}>Profile</h3>
+  <span style={closeBtn} onClick={closeProfile}>✕</span>
+</div>
 
         {/* AVATAR */}
         <div style={avatarWrap}>
@@ -123,19 +123,19 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
         {/* NAME + ID */}
         <div style={{ textAlign: "center" }}>
-          <h2>{form.fullName || user.fullName || "User Name"}</h2>
-          <p style={{ color: "#666" }}>{form.username || user.username}</p>
+          <h2 style={nameStyle}>{form.fullName || user.fullName || "User Name"}</h2>
+<p style={subText}>{form.username || user.username}</p>
         </div>
 
-        <hr />
+        <div style={divider}></div>
 
         {/* INFO */}
         <div style={info}>
-          <p><b>Email:</b> {form.email || user.email || "-"}</p>
-          <p><b>Phone:</b> {form.phone || user.phone || "-"}</p>
-          <p><b>Gender:</b> {form.gender || user.gender || "-"}</p>
-          <p><b>Blood Group:</b> {form.bloodGroup || user.bloodGroup || "-"}</p>
-        </div>
+  <p><span style={label}>Email:</span> {form.email || "-"}</p>
+  <p><span style={label}>Phone:</span> {form.phone || "-"}</p>
+  <p><span style={label}>Gender:</span> {form.gender || "-"}</p>
+  <p><span style={label}>Blood Group:</span> {form.bloodGroup || "-"}</p>
+</div>
 
         {/* EDIT MODE */}
         {editMode && (
@@ -145,7 +145,7 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
             <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" style={input}/>
             <input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="Blood Group" style={input}/>
             <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" style={input}/>
-            <input type="file" onChange={handlePhoto}/>
+          
           </>
         )}
 
@@ -169,76 +169,146 @@ const UserProfile = ({ user = {}, setUser, onLogout }) => {
 
 export default UserProfile;
 
-/* STYLES (unchanged) */
+/* ===== CLEAN MODERN PROFILE UI ===== */
 
 const overlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: 20
+  padding: "20px"
 };
 
 const card = {
-  width: 320,
-  background: "#fff",
-  borderRadius: 30,
-  padding: 20
+  width: "100%",
+  maxWidth: "380px",
+  borderRadius: "28px",
+  padding: "22px",
+  background: "linear-gradient(135deg, #6d28d9, #9333ea)",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+  color: "#fff",
+  position: "relative"
 };
 
+/* ===== HEADER ===== */
 const header = {
-  display: "flex",
-  justifyContent: "space-between"
+  position: "relative",
+  textAlign: "center",
+  marginBottom: "15px"
+};
+
+const title = {
+  fontSize: "20px",
+  fontWeight: "700",
+  color: "#fff"
 };
 
 const closeBtn = {
+  position: "absolute",
+  right: "0",
+  top: "50%",
+  transform: "translateY(-50%)",
+  fontSize: "22px",
   cursor: "pointer",
-  fontSize: 20
+  color: "#fff",
+  opacity: 0.9
 };
 
+/* ===== AVATAR ===== */
 const avatarWrap = {
   display: "flex",
   justifyContent: "center",
-  margin: 20
+  margin: "15px 0"
 };
 
 const avatarCircle = {
-  width: 80,
-  height: 80,
+  width: "100px",
+  height: "100px",
   borderRadius: "50%",
-  border: "2px solid black",
+  background: "linear-gradient(135deg, #22c55e, #06b6d4)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 24,
-  cursor: "pointer"
+  fontSize: "34px",
+  fontWeight: "700",
+  color: "#fff",
+  overflow: "hidden",
+  cursor: "pointer",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.3)"
 };
 
 const avatarImg = {
   width: "100%",
   height: "100%",
-  borderRadius: "50%",
   objectFit: "cover"
 };
 
-const info = {
-  lineHeight: "28px"
+/* ===== NAME ===== */
+const nameStyle = {
+  textAlign: "center",
+  fontSize: "20px",
+  fontWeight: "700",
+  marginTop: "8px"
 };
 
+const subText = {
+  textAlign: "center",
+  fontSize: "13px",
+  opacity: 0.85,
+  marginBottom: "12px"
+};
+
+/* ===== DIVIDER ===== */
+const divider = {
+  height: "1px",
+  width: "100%",
+  margin: "15px 0 20px",
+  background: "linear-gradient(to right, transparent, #c4b5fd, transparent)"
+};
+
+/* ===== INFO BOX ===== */
+const info = {
+  textAlign: "left",
+  padding: "16px",
+  borderRadius: "16px",
+  background: "rgba(255,255,255,0.15)",
+  boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+  lineHeight: "28px",
+  fontSize: "14px",
+  marginBottom: "20px"
+};
+
+const label = {
+  fontWeight: "600",
+  color: "#e0f2fe"
+};
+
+/* ===== INPUT ===== */
 const input = {
   width: "100%",
-  margin: "5px 0",
-  padding: 8
+  margin: "6px 0",
+  padding: "10px",
+  borderRadius: "10px",
+  border: "none",
+  fontSize: "14px",
+  outline: "none"
 };
 
+/* ===== BUTTONS ===== */
 const btn = {
   width: "100%",
-  padding: 10,
-  marginTop: 10,
-  cursor: "pointer"
+  padding: "14px",
+  borderRadius: "14px",
+  border: "none",
+  background: "linear-gradient(135deg, #2563eb, #06b6d4)",
+  color: "#fff",
+  fontWeight: "600",
+  fontSize: "15px",
+  cursor: "pointer",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.3)",
+  marginBottom: "12px"
 };
 
 const logoutBtn = {
   ...btn,
-  background: "red",
-  color: "#fff"
+  background: "linear-gradient(135deg, #ef4444, #f97316)"
 };

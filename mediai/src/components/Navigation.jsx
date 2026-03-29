@@ -56,7 +56,8 @@ const styles = {
   },
 
   activeBtn: {
-    padding: "14px 28px",
+    padding: "20px",
+    width: "30%",
     fontSize: "18px",
     fontWeight: "600",
     borderRadius: "10px",
