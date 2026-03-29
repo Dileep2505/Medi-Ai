@@ -9,26 +9,34 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const reset = async () => {
+    setMessage("");
+
     if (!token) {
-      alert("Invalid reset link");
+      setMessage("Invalid or broken reset link");
       return;
     }
 
     if (!password || password.length < 6) {
-      alert("Password must be at least 6 characters");
+      setMessage("Password must be at least 6 characters");
       return;
     }
 
-    setLoading(true);
-
     try {
-      const res = await fetch(`${API_BASE}/api/auth/reset-password/${token}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password })
-      });
+      setLoading(true);
+
+      const res = await fetch(
+        `${API_BASE}/api/auth/reset-password/${token}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ password })
+        }
+      );
 
       let data;
       try {
@@ -41,12 +49,16 @@ export default function ResetPassword() {
         throw new Error(data.message || "Reset failed");
       }
 
-      alert("Password updated successfully");
-      navigate("/");
+      setMessage("✅ Password updated successfully");
+
+      // redirect after delay
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
 
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Server error");
+      console.error("RESET ERROR:", err);
+      setMessage(err.message || "Server error");
     } finally {
       setLoading(false);
     }
@@ -56,15 +68,25 @@ export default function ResetPassword() {
     <div style={container}>
       <h2>Reset Password</h2>
 
+      {message && <p style={msg}>{message}</p>}
+
       <input
         type="password"
         placeholder="New Password"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
         style={input}
       />
 
-      <button onClick={reset} disabled={loading} style={btn}>
+      <button
+        onClick={reset}
+        disabled={loading}
+        style={{
+          ...btn,
+          opacity: loading ? 0.6 : 1,
+          cursor: loading ? "not-allowed" : "pointer"
+        }}
+      >
         {loading ? "Updating..." : "Update Password"}
       </button>
     </div>
@@ -79,7 +101,8 @@ const container = {
   padding: 20,
   background: "#fff",
   borderRadius: 10,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  textAlign: "center"
 };
 
 const input = {
@@ -98,4 +121,9 @@ const btn = {
   background: "#2563eb",
   color: "#fff",
   fontWeight: "bold"
+};
+
+const msg = {
+  marginBottom: 10,
+  color: "red"
 };

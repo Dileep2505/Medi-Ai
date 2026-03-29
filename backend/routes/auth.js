@@ -202,7 +202,7 @@ router.post("/forgot-password", async (req, res) => {
         email,
         "Reset Password",
         `<h3>Reset your password</h3>
-         <a href="${process.env.CLIENT_URL}/reset/${token}">
+         <a href="${process.env.CLIENT_URL}/#/reset/${token}">
          Click here to reset password
          </a>`
       );
@@ -219,6 +219,42 @@ router.post("/forgot-password", async (req, res) => {
   } catch (err) {
     console.error("FORGOT ERROR:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ================= RESET PASSWORD ================= */
+
+router.post("/reset-password/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Weak password" });
+    }
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    user.password = hashed;
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
+
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (err) {
+    console.error("RESET ERROR:", err);
+    res.status(500).json({ message: "Reset failed" });
   }
 });
 
