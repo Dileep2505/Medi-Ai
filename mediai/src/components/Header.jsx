@@ -1,16 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useApp } from "../context/AppContext";
 
-const Header = ({ user = {} }) => {
+const Header = () => {
   const app = useApp();
   const setActiveTab =
     typeof app?.setActiveTab === "function" ? app.setActiveTab : () => {};
+
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored));
+      } catch {
+        setUser(null);
+      }
+    }
+  }, []);
+
+  // ✅ fallback initial
+  const initial =
+    user?.fullName?.charAt(0)?.toUpperCase() || "U";
 
   return (
     <header style={styles.header}>
       <div style={styles.leftSection}>
         
-        {/* 🔵 LOGO */}
+        {/* LOGO */}
         <div style={styles.logoCircle}>
           <img
             src={process.env.PUBLIC_URL + "/images/logo.png"}
@@ -27,17 +44,27 @@ const Header = ({ user = {} }) => {
         </div>
       </div>
 
-      {/* PROFILE CLICK */}
+      {/* PROFILE */}
       <div
         style={styles.rightSection}
         onClick={() => setActiveTab("profile")}
       >
         <span style={styles.doctorName}>
-          {user?.name || "User"}
+          {user?.fullName || "User"}
         </span>
-        <div style={styles.avatar}>
-          {user?.name?.charAt(0)?.toUpperCase() || "👤"}
-        </div>
+
+        {/* ✅ PROFILE IMAGE OR INITIAL */}
+        {user?.photo ? (
+          <img
+            src={user.photo}
+            alt="profile"
+            style={styles.avatarImage}
+          />
+        ) : (
+          <div style={styles.avatar}>
+            {initial}
+          </div>
+        )}
       </div>
     </header>
   );
@@ -99,12 +126,12 @@ const styles = {
   rightSection: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "12px",
     cursor: "pointer"
   },
 
   doctorName: {
-    fontSize: "30px",
+    fontSize: "22px",
     fontWeight: "600"
   },
 
@@ -116,8 +143,16 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "1000",
-    fontSize: "28px",
+    fontWeight: "bold",
+    fontSize: "24px",
     color: "#fff"
+  },
+
+  avatarImage: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid white"
   }
 };
