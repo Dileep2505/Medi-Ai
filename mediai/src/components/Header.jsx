@@ -76,7 +76,7 @@ export default Header;
 
 const styles = {
   header: {
-    background: "#2563eb",
+    background: "#801BC4",
     color: "#ffffff",
     padding: "18px 38px",
     borderRadius: 12,
@@ -97,12 +97,12 @@ const styles = {
     height: "80px",
     borderRadius: "50%",
     overflow: "hidden",
-    background: "#fff",
+    background: "#E00B0B",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    border: "3px solid white",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
+    border: "4px solid White",
+    boxShadow: "1 4px 6px rgba(0,2,0,0.2)"
   },
 
   logo: {
@@ -113,8 +113,8 @@ const styles = {
 
   title: {
     margin: 0,
-    fontSize: "30px",
-    fontWeight: "600"
+    fontSize: "40px",
+    fontWeight: "700"
   },
 
   subtitle: {
@@ -126,12 +126,12 @@ const styles = {
   rightSection: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "20px",
     cursor: "pointer"
   },
 
   doctorName: {
-    fontSize: "22px",
+    fontSize: "35px",
     fontWeight: "600"
   },
 
@@ -153,6 +153,6 @@ const styles = {
     height: "60px",
     borderRadius: "50%",
     objectFit: "cover",
-    border: "2px solid white"
+    border: "4px solid black"
   }
 };

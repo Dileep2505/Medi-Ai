@@ -79,7 +79,7 @@ const container = {
 };
 
 const title = {
-  fontSize: 22,
+  fontSize: 30,
   fontWeight: 600,
   marginBottom: 15
 };
@@ -92,8 +92,9 @@ const modeRow = {
 
 const activeMode = {
   flex: 1,
-  padding: 12,
-  background: "#2563eb",
+  fontSize: 25,
+  padding: 15,
+  background: "#C41B5F",
   color: "white",
   border: "none",
   borderRadius: 8,
@@ -103,7 +104,9 @@ const activeMode = {
 const modeBtn = {
   flex: 1,
   padding: 12,
-  background: "#f3f4f6",
+  fontSize: 20,
+  background: "#C41B5F",
+  color: "white",
   border: "none",
   borderRadius: 8,
   fontWeight: 500
@@ -112,12 +115,12 @@ const modeBtn = {
 
 const textarea = {
   width: "100%",
-  height: 200,
+  height: 250,
   marginTop: 15,
   padding: 12,
   borderRadius: 8,
-  border: "1px solid #e5e7eb",
-  fontSize: 14
+  border: "3px solid #e5e7eb",
+  fontSize: 18
 };
 
 const fileList = {
@@ -126,12 +129,12 @@ const fileList = {
 };
 
 const processBtn = {
-  marginTop: 20,
-  padding: "12px 25px",
-  background: "#2563eb",
+  marginTop: 30,
+  margin: "0 auto",
+  padding: "15px 247px",
+  background: "#5BDE10",
+  border: "3px solid #4C6A78",
   color: "white",
-  border: "none",
-  borderRadius: 8,
-  fontSize: 16,
-  float: "right"
+  borderRadius: 15,
+  fontSize: 30,
 };

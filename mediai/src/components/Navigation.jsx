@@ -10,7 +10,7 @@ const Navigation = () => {
         style={activeTab === "upload" ? styles.activeBtn : styles.btn}
         onClick={() => setActiveTab("upload")}
       >
-        Upload
+        Upload Files
       </button>
 
       <button
@@ -48,7 +48,7 @@ const styles = {
     fontSize: "18px",
     fontWeight: "600",
     borderRadius: "10px",
-    border: "2px solid #2563eb",
+    border: "4px solid #ffd700",
     background: "white",
     color: "#2563eb",
     cursor: "pointer",
@@ -60,7 +60,7 @@ const styles = {
     fontSize: "18px",
     fontWeight: "600",
     borderRadius: "10px",
-    border: "2px solid #2563eb",
+    border: "4px solid #ffd700",
     background: "#2563eb",
     color: "white",
     cursor: "pointer"

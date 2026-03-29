@@ -154,7 +154,7 @@ const emptyState = {
 const sectionTitle = {
   fontSize: 22,
   marginBottom: 10,
-  background: "#ecfdf5",
+  background: "#1CBDB7",
   padding: "10px 16px",
   borderRadius: 6,
   color: "#000"
@@ -162,14 +162,14 @@ const sectionTitle = {
 
 const subTitle = {
   marginTop: 20,
-  background: "#ecfdf5",
+  background: "#1CBDB7",
   padding: "10px 16px",
   borderRadius: 6,
   color: "#000"
 };
 
 const conditionCard = {
-  border: "1px solid #facc15",
+  border: "2px solid #facc15",
   background: "#fffbeb",
   padding: 18,
   borderRadius: 8,
@@ -222,11 +222,12 @@ const labAlert = {
 
 const medButton = {
   marginTop: 30,
-  background: "#2563eb",
+  background: "#31BD1C",
   color: "white",
-  padding: "10px 16px",
+  padding: "15px 187px",
   borderRadius: 6,
-  border: "none",
+  fontSize: 25,
+  border: "3px solid #F2F21D",
   cursor: "pointer"
 };
 

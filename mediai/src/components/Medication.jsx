@@ -55,18 +55,18 @@ const Medication = ({ meds }) => {
 
           return (
             <div key={i} style={card}>
-              <h3>{conditionName}</h3>
-              <ul>
-                {drugs && drugs.length > 0 ? (
-                  drugs.map((d, idx) => (
-                    <li key={idx}>
-                      <b>{d.name}</b> — {d.dose} — {d.form}
-                    </li>
-                  ))
-                ) : (
-                  <li>No medications found</li>
-                )}
-              </ul>
+               <h3 style={conditionTitle}>{conditionName}</h3>
+              <ul style={drugList}>
+      {drugs && drugs.length > 0 ? (
+        drugs.map((d, idx) => (
+          <li key={idx} style={drugItem}>
+            <b>{d.name}</b> — {d.dose} — {d.form}
+          </li>
+        ))
+      ) : (
+        <li>No medications found</li>
+      )}
+    </ul>
             </div>
           );
         })}
@@ -79,11 +79,11 @@ export default Medication;
 
 /* ===== STYLES ===== */
 const pageCenter = {
-  minHeight: "20vh",
+  minHeight: "50vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: 50
+  background: "#F2F2F2"
 };
 
 const container = {
@@ -94,32 +94,61 @@ const container = {
 };
 
 const title = {
-  textAlign: "center",
-  background: "#ffffff",
-  padding: 10,
+  fontSize: 30,
+  margin: "0 auto",
+  background: "#26E0A8",
+  padding: "20px 20px 20px 150px",
   borderRadius: 12,
-  marginBottom: 20,
-  color: "#111"
+  fontWeight: "750",
+  color: "#000",
+  
+  marginBottom: "5px"
+};
+
+const conditionTitle = {
+  fontSize: "30px",
+  fontWeight: "900",
+  marginBottom: "15px",
+  color: "#ffffff"
+};
+
+const drugList = {
+  paddingLeft: "20px",
+  margin: 0
+};
+
+const drugItem = {
+  marginBottom: "6px"
 };
 
 const card = {
+  fontSize: 20,
   border: "1px solid #ddd",
-  padding: 20,
+  padding: "30px 30px 30px 45px",
   borderRadius: 10,
-  marginTop: 12,
-  background: "#ffffff",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+  marginTop: 15,
+  background: "#26BBE0",
+  marginBottom: "10px",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+  
 };
 
 const box = {
-  padding: 20,
-  background: "#ffffff",
-  borderRadius: 8
+  background: "#ff2d2d",
+  padding: "35px 40px",
+  borderRadius: "20px",
+  width: "520px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "20px"
 };
 
 const input = {
-  padding: 8,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-  marginRight: 10
+  width: "100%",
+  padding: "14px",
+  borderRadius: "12px",
+  border: "none",
+  fontSize: "16px",
+  outline: "none",
+  background: "#e5e7eb"
 };
