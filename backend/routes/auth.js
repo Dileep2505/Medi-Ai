@@ -229,6 +229,9 @@ router.post("/reset-password/:token", async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
+    console.log("RESET TOKEN:", token);
+    console.log("NEW PASSWORD:", password);
+
     if (!password || password.length < 6) {
       return res.status(400).json({ message: "Weak password" });
     }
@@ -239,6 +242,7 @@ router.post("/reset-password/:token", async (req, res) => {
     });
 
     if (!user) {
+      console.log("❌ USER NOT FOUND OR TOKEN EXPIRED");
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
@@ -250,11 +254,13 @@ router.post("/reset-password/:token", async (req, res) => {
 
     await user.save();
 
+    console.log("✅ PASSWORD UPDATED");
+
     res.json({ message: "Password reset successful" });
 
   } catch (err) {
-    console.error("RESET ERROR:", err);
-    res.status(500).json({ message: "Reset failed" });
+    console.error("RESET ERROR FULL:", err); // 🔥 IMPORTANT
+    res.status(500).json({ message: "Server error" });
   }
 });
 
