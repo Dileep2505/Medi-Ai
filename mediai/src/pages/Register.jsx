@@ -3,12 +3,41 @@ import "./Auth.css";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
-export default function Register({
-  setAuthScreen,
-  setUser,
-  setActiveTab,
-  setLoggedIn
-}) {
+/* ================= VALIDATION ================= */
+const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const validatePhone = (phone) =>
+  /^\d{10,15}$/.test(phone);
+
+const getPasswordStrength = (password) => {
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[@$!%*?&]/.test(password)) score++;
+
+  if (score <= 1) return "weak";
+  if (score <= 3) return "medium";
+  return "strong";
+};
+
+/* ================= UTILS ================= */
+const generateUsernameFromName = (name) => {
+  if (!name) return "";
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z ]/g, "")
+    .trim()
+    .split(" ")
+    .join("_");
+
+  return `${base}_${Math.floor(100 + Math.random() * 900)}`;
+};
+
+export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
+
+  /* ================= STATE ================= */
   const [form, setForm] = useState({
     fullName: "",
     username: "",
@@ -21,12 +50,14 @@ export default function Register({
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
+
+  const [usernameStatus, setUsernameStatus] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [usernameStatus, setUsernameStatus] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
 
   const debounceRef = useRef(null);
 
@@ -40,7 +71,15 @@ export default function Register({
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/auth/check-username/${value}`);
+        const res = await fetch(
+          `${API_BASE}/api/auth/check-username/${value}`
+        );
+
+        if (!res.ok) {
+          console.error("Username API failed");
+          return;
+        }
+
         const data = await res.json();
 
         if (data.available) {
@@ -50,7 +89,9 @@ export default function Register({
           setUsernameStatus("taken");
           setSuggestions(data.suggestions || []);
         }
-      } catch {
+
+      } catch (err) {
+        console.error(err);
         setUsernameStatus(null);
       }
     }, 500);
@@ -59,72 +100,53 @@ export default function Register({
   /* ================= REGISTER ================= */
   const register = async () => {
     setError("");
-    setSuccess("");
 
     if (
       !form.fullName ||
-      !form.username || // ✅ now required
       !form.email ||
       !form.phone ||
       !form.gender ||
       !form.password ||
       !form.confirmPassword
     ) {
-      setError("All fields are required");
-      return;
+      return setError("All fields required");
     }
 
-    if (usernameStatus === "taken") {
-      setError("Username already taken");
-      return;
-    }
+    if (!validateEmail(form.email)) return setError("Invalid email");
+    if (!validatePhone(form.phone)) return setError("Invalid phone");
+    if (passwordStrength === "weak") return setError("Weak password");
+    if (form.password !== form.confirmPassword)
+      return setError("Passwords mismatch");
 
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
+    let finalUsername = form.username;
+    if (!finalUsername) {
+      finalUsername = generateUsernameFromName(form.fullName);
     }
 
     try {
       setLoading(true);
 
-      const payload = {
-        fullName: form.fullName.trim(),
-        username: form.username.trim().toLowerCase(),
-        email: form.email.trim().toLowerCase(),
-        phone: form.phone.replace(/\D/g, ""),
-        gender: form.gender,
-        password: form.password
-      };
-
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          username: finalUsername.toLowerCase(),
+          email: form.email.toLowerCase(),
+          phone: form.phone.replace(/\D/g, "")
+        })
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message || "Registration failed");
-        return;
-      }
+      if (!res.ok) return setError(data.message);
 
-      const user = data.user;
-
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("userId", user.userId);
-      if (data.token) localStorage.setItem("token", data.token);
-
-      setUser(user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
       setLoggedIn(true);
 
       setSuccess("Account created!");
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      setTimeout(() => window.location.reload(), 500);
 
     } catch (err) {
       console.error(err);
@@ -134,133 +156,131 @@ export default function Register({
     }
   };
 
+  /* ================= UI ================= */
   return (
     <div className="auth-container">
       <div className="auth-right">
         <div className="auth-card">
+
           <h2>Create Account</h2>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          {success && <p style={{ color: "green" }}>{success}</p>}
+          {/* NAME + USERNAME */}
+          <div className="form-grid">
+            <input
+              className="auth-input"
+              placeholder="Full Name"
+              value={form.fullName}
+              onChange={(e) => {
+                const name = e.target.value;
+                const auto = generateUsernameFromName(name);
 
-          {/* FULL NAME */}
-          <input
-            className="auth-input"
-            placeholder="Full Name"
-            value={form.fullName}
-            onChange={(e) =>
-              setForm({ ...form, fullName: e.target.value })
-            }
-          />
+                setForm({
+                  ...form,
+                  fullName: name,
+                  username: form.username || auto
+                });
 
-          {/* USERNAME */}
-          <input
-            className="auth-input"
-            placeholder="Username"
-            value={form.username}
-            onChange={(e) => {
-              const value = e.target.value.trim();
-              setForm({ ...form, username: value });
-              if (value.length > 2) checkUsername(value);
-            }}
-          />
+                if (!form.username) checkUsername(auto);
+              }}
+            />
 
+            <input
+              className="auth-input"
+              placeholder="Username"
+              value={form.username}
+              onChange={(e) => {
+                const val = e.target.value;
+                setForm({ ...form, username: val });
+
+                if (val.length > 2) checkUsername(val);
+              }}
+            />
+          </div>
+
+          {/* USERNAME STATUS */}
           {usernameStatus === "checking" && <p>Checking...</p>}
           {usernameStatus === "available" && (
             <p style={{ color: "green" }}>✔ Available</p>
           )}
+
           {usernameStatus === "taken" && (
-            <div>
-              <p style={{ color: "red" }}>Username taken</p>
+            <div className="username-suggestions">
+              <p className="auth-error">Username taken</p>
+
               {suggestions.map((s, i) => (
-                <span
+                <button
                   key={i}
-                  style={{ marginRight: 10, cursor: "pointer", color: "blue" }}
-                  onClick={() => {
-                    setForm({ ...form, username: s });
-                    setUsernameStatus("available");
-                  }}
+                  onClick={() =>
+                    setForm({ ...form, username: s })
+                  }
                 >
                   {s}
-                </span>
+                </button>
               ))}
             </div>
           )}
 
-          {/* EMAIL */}
-          <input
-            className="auth-input"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
-            }
-          />
-
-          {/* PHONE */}
-          <input
-            className="auth-input"
-            placeholder="Phone"
-            value={form.phone}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                phone: e.target.value.replace(/\D/g, "")
-              })
-            }
-          />
-
-          {/* GENDER */}
-          <select
-            className="auth-input"
-            value={form.gender}
-            onChange={(e) =>
-              setForm({ ...form, gender: e.target.value })
-            }
-          >
-            <option value="">Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
-
-          {/* PASSWORD */}
-          <div style={{ position: "relative" }}>
+          {/* EMAIL + PHONE */}
+          <div className="form-grid">
             <input
-              type={showPassword ? "text" : "password"}
               className="auth-input"
-              placeholder="Password"
-              value={form.password}
+              placeholder="Email"
+              value={form.email}
               onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
+                setForm({ ...form, email: e.target.value })
               }
             />
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              style={eyeStyle}
-            >
-              {showPassword ? "🙈" : "👁️"}
+
+            <input
+              className="auth-input"
+              placeholder="Phone"
+              value={form.phone}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  phone: e.target.value.replace(/\D/g, "")
+                })
+              }
+            />
+          </div>
+
+          {/* PASSWORD */}
+          <div className="input-group">
+            <input
+              className="auth-input"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => {
+                const val = e.target.value;
+                setForm({ ...form, password: val });
+                setPasswordStrength(getPasswordStrength(val));
+              }}
+            />
+            <span className="eye" onClick={() => setShowPassword(!showPassword)}>
+              
             </span>
           </div>
 
+          <p style={{ fontSize: 12 }}>Strength: {passwordStrength}</p>
+
           {/* CONFIRM PASSWORD */}
-          <div style={{ position: "relative" }}>
+          <div className="input-group">
             <input
-              type={showConfirm ? "text" : "password"} // ✅ FIXED
               className="auth-input"
+              type={showConfirm ? "text" : "password"}
               placeholder="Confirm Password"
               value={form.confirmPassword}
               onChange={(e) =>
                 setForm({ ...form, confirmPassword: e.target.value })
               }
             />
-            <span
-              onClick={() => setShowConfirm(!showConfirm)}
-              style={eyeStyle}
-            >
-              {showConfirm ? "🙈" : "👁️"}
+            <span className="eye" onClick={() => setShowConfirm(!showConfirm)}>
+             
             </span>
           </div>
 
+          {/* BUTTON */}
           <button
             className="auth-button"
             onClick={register}
@@ -269,22 +289,12 @@ export default function Register({
             {loading ? "Creating..." : "Register"}
           </button>
 
-          <div className="auth-link">
-            Already have an account?{" "}
-            <span onClick={() => setAuthScreen("login")}>
-              Log in
-            </span>
-          </div>
+          {/* FEEDBACK */}
+          {error && <p className="auth-error">{error}</p>}
+          {success && <p className="auth-success">{success}</p>}
+
         </div>
       </div>
     </div>
   );
 }
-
-const eyeStyle = {
-  position: "absolute",
-  right: "12px",
-  top: "50%",
-  transform: "translateY(-50%)",
-  cursor: "pointer"
-};

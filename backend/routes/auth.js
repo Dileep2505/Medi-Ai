@@ -11,7 +11,7 @@ const router = express.Router();
 const normalizeEmail = (email) => email.trim().toLowerCase();
 const normalizeUsername = (username) => username.trim().toLowerCase();
 
-/* ================= USERNAME ================= */
+/* ================= USERNAME GENERATOR ================= */
 const generateUsername = async (fullName) => {
   let base = fullName
     .toLowerCase()
@@ -26,7 +26,7 @@ const generateUsername = async (fullName) => {
     const candidate =
       i === 0
         ? base
-        : `${base}_${Math.floor(1000 + Math.random() * 9000)}`;
+        : `${base}_${Math.floor(100 + Math.random() * 900)}`;
 
     const exists = await User.findOne({ username: candidate });
     if (!exists) return candidate;
@@ -34,6 +34,39 @@ const generateUsername = async (fullName) => {
 
   return `${base}_${Date.now()}`;
 };
+
+/* ================= CHECK USERNAME ================= */
+router.get("/check-username/:username", async (req, res) => {
+  try {
+    const username = normalizeUsername(req.params.username);
+
+    if (!username || username.length < 3) {
+      return res.json({ available: false });
+    }
+
+    const exists = await User.findOne({ username });
+
+    if (!exists) {
+      return res.json({ available: true });
+    }
+
+    const suggestions = [];
+    for (let i = 0; i < 5; i++) {
+      suggestions.push(
+        `${username}_${Math.floor(100 + Math.random() * 900)}`
+      );
+    }
+
+    res.json({
+      available: false,
+      suggestions
+    });
+
+  } catch (err) {
+    console.error("USERNAME CHECK ERROR:", err);
+    res.status(500).json({ available: false });
+  }
+});
 
 /* ================= USER ID ================= */
 const generateUserId = () => crypto.randomBytes(6).toString("hex");
