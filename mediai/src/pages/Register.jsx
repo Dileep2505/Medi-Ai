@@ -19,6 +19,9 @@ export default function Register({
     confirmPassword: ""
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,8 +41,6 @@ export default function Register({
     debounceRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`${API_BASE}/api/auth/check-username/${value}`);
-        if (!res.ok) return;
-
         const data = await res.json();
 
         if (data.available) {
@@ -62,6 +63,7 @@ export default function Register({
 
     if (
       !form.fullName ||
+      !form.username || // ✅ now required
       !form.email ||
       !form.phone ||
       !form.gender ||
@@ -69,6 +71,11 @@ export default function Register({
       !form.confirmPassword
     ) {
       setError("All fields are required");
+      return;
+    }
+
+    if (usernameStatus === "taken") {
+      setError("Username already taken");
       return;
     }
 
@@ -82,9 +89,9 @@ export default function Register({
 
       const payload = {
         fullName: form.fullName.trim(),
-        username: form.username?.trim().toLowerCase(), // optional
+        username: form.username.trim().toLowerCase(),
         email: form.email.trim().toLowerCase(),
-        phone: form.phone.replace(/\D/g, ""), // ✅ FIXED
+        phone: form.phone.replace(/\D/g, ""),
         gender: form.gender,
         password: form.password
       };
@@ -106,26 +113,15 @@ export default function Register({
 
       const user = data.user;
 
-      if (!user || !user.userId) {
-        setError("Invalid server response");
-        return;
-      }
-
-      // ✅ STORE
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("userId", user.userId);
+      if (data.token) localStorage.setItem("token", data.token);
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-      // ✅ STATE
       setUser(user);
       setLoggedIn(true);
 
       setSuccess("Account created!");
 
-      // ✅ REDIRECT
       setTimeout(() => {
         window.location.reload();
       }, 500);
@@ -140,11 +136,6 @@ export default function Register({
 
   return (
     <div className="auth-container">
-      <div className="auth-left">
-        <h1>MediAi</h1>
-        <p>Create your account to start tracking your health insights.</p>
-      </div>
-
       <div className="auth-right">
         <div className="auth-card">
           <h2>Create Account</h2>
@@ -162,7 +153,7 @@ export default function Register({
             }
           />
 
-          {/* USERNAME (OPTIONAL) */}
+          {/* USERNAME */}
           <input
             className="auth-input"
             placeholder="Username"
@@ -170,12 +161,7 @@ export default function Register({
             onChange={(e) => {
               const value = e.target.value.trim();
               setForm({ ...form, username: value });
-
               if (value.length > 2) checkUsername(value);
-              else {
-                setUsernameStatus(null);
-                setSuggestions([]);
-              }
             }}
           />
 
@@ -185,16 +171,14 @@ export default function Register({
           )}
           {usernameStatus === "taken" && (
             <div>
-              {error && <p className="auth-error">{error}</p>}
-{success && <p className="auth-success">{success}</p>}
+              <p style={{ color: "red" }}>Username taken</p>
               {suggestions.map((s, i) => (
                 <span
                   key={i}
-                  style={{ marginLeft: 8, cursor: "pointer", color: "blue" }}
+                  style={{ marginRight: 10, cursor: "pointer", color: "blue" }}
                   onClick={() => {
                     setForm({ ...form, username: s });
                     setUsernameStatus("available");
-                    setSuggestions([]);
                   }}
                 >
                   {s}
@@ -213,7 +197,7 @@ export default function Register({
             }
           />
 
-          {/* PHONE ✅ FIXED */}
+          {/* PHONE */}
           <input
             className="auth-input"
             placeholder="Phone"
@@ -241,61 +225,41 @@ export default function Register({
 
           {/* PASSWORD */}
           <div style={{ position: "relative" }}>
-  <input
-    type={showPassword ? "text" : "password"}
-    className="auth-input"
-    placeholder="Password"
-    value={form.password}
-    onChange={(e) =>
-      setForm({ ...form, password: e.target.value })
-    }
-  />
+            <input
+              type={showPassword ? "text" : "password"}
+              className="auth-input"
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) =>
+                setForm({ ...form, password: e.target.value })
+              }
+            />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={eyeStyle}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </span>
+          </div>
 
-  {/* 👁️ Eye Toggle */}
-  <span
-    onClick={() => setShowPassword(!showPassword)}
-    style={{
-      position: "absolute",
-      right: "12px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      cursor: "pointer",
-      fontSize: "18px",
-      userSelect: "none"
-    }}
-  >
-    {showPassword ? "⌣" : "👁️"}
-  </span>
-</div>
-
-          {/* CONFIRM */}
+          {/* CONFIRM PASSWORD */}
           <div style={{ position: "relative" }}>
-  <input
-    type={showPassword ? "text" : "confirmPassword"}
-    className="auth-input"
-    placeholder="confirmPassword"
-    value={form.confirmPassword}
-    onChange={(e) =>
-      setForm({ ...form, confirmPassword: e.target.value })
-    }
-  />
-
-  {/* 👁️ Eye Toggle */}
-  <span
-    onClick={() => setShowPassword(!showPassword)}
-    style={{
-      position: "absolute",
-      right: "12px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      cursor: "pointer",
-      fontSize: "18px",
-      userSelect: "none"
-    }}
-  >
-    {showPassword ? "⌣" : "👁️"}
-  </span>
-</div>
+            <input
+              type={showConfirm ? "text" : "password"} // ✅ FIXED
+              className="auth-input"
+              placeholder="Confirm Password"
+              value={form.confirmPassword}
+              onChange={(e) =>
+                setForm({ ...form, confirmPassword: e.target.value })
+              }
+            />
+            <span
+              onClick={() => setShowConfirm(!showConfirm)}
+              style={eyeStyle}
+            >
+              {showConfirm ? "🙈" : "👁️"}
+            </span>
+          </div>
 
           <button
             className="auth-button"
@@ -316,3 +280,11 @@ export default function Register({
     </div>
   );
 }
+
+const eyeStyle = {
+  position: "absolute",
+  right: "12px",
+  top: "50%",
+  transform: "translateY(-50%)",
+  cursor: "pointer"
+};
