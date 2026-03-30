@@ -36,21 +36,25 @@ export default Navigation;
 
 const styles = {
   wrapper: {
-    minHeight: "100vh",
+    minHeight: "80vh",
     background: "linear-gradient(135deg, #e0f2fe, #f0f9ff, #dbeafe)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
+
   },
 
   nav: {
     display: "flex",
     gap: "20px",
     padding: "20px 30px",
+    marginRight: "98px",
+    marginBottom: "1%",
+    marginTop: "1%",
     borderRadius: "20px",
     background: "rgba(255, 255, 255, 0.6)",
     backdropFilter: "blur(10px)",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.1)"
+    boxShadow: "0 8px 20px rgba(0,0,0,0.1)"
   },
 
   btn: {

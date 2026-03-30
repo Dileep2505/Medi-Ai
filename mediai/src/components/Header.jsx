@@ -74,8 +74,8 @@ export default Header;
 
 const styles = {
   header: {
-    width: "100%",
-    padding: "16px 32px",
+    width: "90%",
+    padding: "16px 38px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -95,8 +95,8 @@ const styles = {
   },
 
   logoCircle: {
-    width: "56px",
-    height: "56px",
+    width: "65px",
+    height: "65px",
     borderRadius: "50%",
     overflow: "hidden",
 
