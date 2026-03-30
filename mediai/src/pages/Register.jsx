@@ -165,7 +165,7 @@ export default function Register({
           {/* USERNAME (OPTIONAL) */}
           <input
             className="auth-input"
-            placeholder="Username (optional)"
+            placeholder="Username"
             value={form.username}
             onChange={(e) => {
               const value = e.target.value.trim();
@@ -240,26 +240,62 @@ export default function Register({
           </select>
 
           {/* PASSWORD */}
-          <input
-            type="password"
-            className="auth-input"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) =>
-              setForm({ ...form, password: e.target.value })
-            }
-          />
+          <div style={{ position: "relative" }}>
+  <input
+    type={showPassword ? "text" : "password"}
+    className="auth-input"
+    placeholder="Password"
+    value={form.password}
+    onChange={(e) =>
+      setForm({ ...form, password: e.target.value })
+    }
+  />
+
+  {/* 👁️ Eye Toggle */}
+  <span
+    onClick={() => setShowPassword(!showPassword)}
+    style={{
+      position: "absolute",
+      right: "12px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      fontSize: "18px",
+      userSelect: "none"
+    }}
+  >
+    {showPassword ? "⌣" : "👁️"}
+  </span>
+</div>
 
           {/* CONFIRM */}
-          <input
-            type="password"
-            className="auth-input"
-            placeholder="Confirm Password"
-            value={form.confirmPassword}
-            onChange={(e) =>
-              setForm({ ...form, confirmPassword: e.target.value })
-            }
-          />
+          <div style={{ position: "relative" }}>
+  <input
+    type={showPassword ? "text" : "confirmPassword"}
+    className="auth-input"
+    placeholder="confirmPassword"
+    value={form.confirmPassword}
+    onChange={(e) =>
+      setForm({ ...form, confirmPassword: e.target.value })
+    }
+  />
+
+  {/* 👁️ Eye Toggle */}
+  <span
+    onClick={() => setShowPassword(!showPassword)}
+    style={{
+      position: "absolute",
+      right: "12px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      fontSize: "18px",
+      userSelect: "none"
+    }}
+  >
+    {showPassword ? "⌣" : "👁️"}
+  </span>
+</div>
 
           <button
             className="auth-button"

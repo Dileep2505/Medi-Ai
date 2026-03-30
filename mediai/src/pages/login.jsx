@@ -131,7 +131,7 @@ export default function Login({
                 cursor: "pointer"
               }}
             >
-              {showPassword ? "🙈" : "👁"}
+              
             </span>
           </div>
 
