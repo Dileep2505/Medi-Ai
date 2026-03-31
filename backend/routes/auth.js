@@ -216,16 +216,21 @@ router.post("/google", async (req, res) => {
 
     const payload = ticket.getPayload();
 
-    const { email, name, picture } = payload;
+    const email = payload.email;
+    const fullName = payload.name;
 
     let user = await User.findOne({ email });
 
+    // ✅ CREATE USER IF NOT EXISTS
     if (!user) {
       user = await User.create({
-        userId: Date.now().toString(),
-        fullName: name,
+        userId: crypto.randomBytes(6).toString("hex"),
+        fullName,
         email,
-        avatar: picture
+        username: email.split("@")[0],
+        phone: "",
+        gender: "other",
+        password: ""
       });
     }
 
@@ -238,7 +243,7 @@ router.post("/google", async (req, res) => {
     res.json({ token, user });
 
   } catch (err) {
-    console.error("GOOGLE LOGIN ERROR:", err);
+    console.error("GOOGLE AUTH ERROR:", err);
     res.status(500).json({ message: "Google login failed" });
   }
 });
