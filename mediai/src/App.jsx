@@ -33,6 +33,7 @@ function MainApp() {
   const { activeTab, setActiveTab } = useApp();
 
   const [authScreen, setAuthScreen] = useState("login");
+  const [user, setUser] = useState(null);
 
   const [textReport, setTextReport] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -42,9 +43,7 @@ function MainApp() {
   });
   const [analyzing, setAnalyzing] = useState(false);
 
-  const [user, setUser] = useState(null);
-
-  /* ================= AUTO LOGIN (REAL FIX) ================= */
+  /* ================= AUTO LOGIN ================= */
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -52,8 +51,6 @@ function MainApp() {
 
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
-    } else {
-      setUser(null);
     }
   }, []);
 
@@ -119,7 +116,6 @@ function MainApp() {
         <Register
           setAuthScreen={setAuthScreen}
           setUser={setUser}
-          setActiveTab={setActiveTab}
         />
       );
     }
