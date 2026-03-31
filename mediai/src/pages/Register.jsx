@@ -143,33 +143,38 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
   };
 
   /* ================= GOOGLE LOGIN ================= */
-  const handleGoogleLogin = async (res) => {
-    try {
-      const decoded = jwtDecode(res.credential);
-      console.log(decoded);
-
-      const response = await fetch(`${API_BASE}/api/auth/google`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          credential: res.credential
-        })
-      });
-
-      const data = await response.json();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      setUser(data.user);
-      setLoggedIn(true);
-
-    } catch {
-      setError("Google login failed");
+  const handleGoogleLogin = async (response) => {
+  try {
+    if (!response?.credential) {
+      throw new Error("No credential received");
     }
-  };
+
+    const res = await fetch(`${API_BASE}/api/auth/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        credential: response.credential
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Google login failed");
+    }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser(data.user);
+
+  } catch (err) {
+    console.error("GOOGLE ERROR:", err);
+    setError(err.message);
+  }
+};
 
   return (
     <div className="auth-container">
@@ -297,10 +302,7 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
 
           {/* GOOGLE */}
           <div style={{ marginTop: 15 }}>
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => setError("Google login failed")}
-            />
+            <GoogleLogin onSuccess={handleGoogleLogin} />
           </div>
 
           {/* ERROR / SUCCESS */}
