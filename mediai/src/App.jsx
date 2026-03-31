@@ -116,7 +116,6 @@ function MainApp() {
         <Register
           setAuthScreen={setAuthScreen}
           setUser={setUser}
-          setActiveTab={setActiveTab}
         />
       );
     }

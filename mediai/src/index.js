@@ -7,7 +7,7 @@ import App from "./App";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <GoogleOAuthProvider clientId="1025015846363-r9bterbp25ph394rd92b34fn5j7rp0n5.apps.googleusercontent.com">
+  <GoogleOAuthProvider clientId="238068066056-9p2ul7ss0tg7pg6u73rorpkjgebolrt8.apps.googleusercontent.com">
     <HashRouter>
       <App />
     </HashRouter>
