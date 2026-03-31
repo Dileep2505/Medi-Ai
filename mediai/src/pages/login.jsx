@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./Auth.css";
 import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
@@ -21,8 +20,7 @@ export default function Login({
     setError("");
 
     if (!form.identifier || !form.password) {
-      setError("Enter email / username / phone and password");
-      return;
+      return setError("Enter email / username / phone and password");
     }
 
     try {
@@ -43,20 +41,17 @@ export default function Login({
 
       if (!res.ok) throw new Error(data.message || "Login failed");
 
-      const user = data.user;
-
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("userId", user.userId);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("userId", data.user.userId);
 
-      setUser(user);
-      setLoggedIn(true);
-
+      if (setUser) setUser(data.user);
+      if (setLoggedIn) setLoggedIn(true);
       if (setActiveTab) setActiveTab("profile");
 
     } catch (err) {
       console.error("LOGIN ERROR:", err);
-      setError(err.message);
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -65,8 +60,9 @@ export default function Login({
   /* ================= GOOGLE LOGIN ================= */
   const handleGoogleLogin = async (res) => {
     try {
-      const decoded = jwtDecode(res.credential);
-      console.log("GOOGLE USER:", decoded);
+      if (!res?.credential) {
+        throw new Error("No credential received");
+      }
 
       const response = await fetch(`${API_BASE}/api/auth/google`, {
         method: "POST",
@@ -80,20 +76,20 @@ export default function Login({
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.message);
+      if (!response.ok) {
+        throw new Error(data.message || "Google login failed");
+      }
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("userId", data.user.userId);
 
-      setUser(data.user);
-      setLoggedIn(true);
-
+      if (setUser) setUser(data.user);
+      if (setLoggedIn) setLoggedIn(true);
       if (setActiveTab) setActiveTab("profile");
 
     } catch (err) {
-      console.error("GOOGLE LOGIN ERROR:", err);
-      setError("Google login failed");
+      console.error("GOOGLE ERROR:", err);
+      setError(err.message || "Google login failed");
     }
   };
 
@@ -134,6 +130,19 @@ export default function Login({
               }
             />
 
+            {/* 👁️ Eye Toggle */}
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer"
+              }}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </span>
           </div>
 
           {/* FORGOT PASSWORD */}
@@ -150,7 +159,7 @@ export default function Login({
             Forgot Password?
           </div>
 
-          {/* LOGIN */}
+          {/* LOGIN BUTTON */}
           <button
             className="auth-button"
             onClick={login}

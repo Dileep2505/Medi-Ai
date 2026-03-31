@@ -204,10 +204,15 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 /* ================= GOOGLE LOGIN ================= */
+/* ================= GOOGLE LOGIN ================= */
 
 router.post("/google", async (req, res) => {
   try {
     const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ message: "No credential provided" });
+    }
 
     const ticket = await client.verifyIdToken({
       idToken: credential,
@@ -216,24 +221,46 @@ router.post("/google", async (req, res) => {
 
     const payload = ticket.getPayload();
 
+    if (!payload) {
+      return res.status(400).json({ message: "Invalid Google token" });
+    }
+
     const email = payload.email;
-    const fullName = payload.name;
+    const fullName = payload.name || "User";
+
+    if (!email) {
+      return res.status(400).json({ message: "Google email not available" });
+    }
 
     let user = await User.findOne({ email });
 
-    // ✅ CREATE USER IF NOT EXISTS
+    /* ================= CREATE USER ================= */
     if (!user) {
+      let usernameBase = email.split("@")[0];
+
+      // 🔥 ensure unique username
+      let username = usernameBase;
+      let count = 0;
+
+      while (await User.findOne({ username })) {
+        count++;
+        username = `${usernameBase}_${count}`;
+      }
+
       user = await User.create({
         userId: crypto.randomBytes(6).toString("hex"),
         fullName,
         email,
-        username: email.split("@")[0],
+        username,
         phone: "",
         gender: "other",
-        password: ""
+
+        // 🔥 IMPORTANT FIX
+        password: await bcrypt.hash(crypto.randomBytes(10).toString("hex"), 10)
       });
     }
 
+    /* ================= TOKEN ================= */
     const token = jwt.sign(
       { userId: user.userId },
       process.env.JWT_SECRET,
