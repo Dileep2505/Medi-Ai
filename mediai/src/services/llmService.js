@@ -1,5 +1,7 @@
+const API_BASE = "https://medi-ai-backend-226z.onrender.com";
+
 export async function analyzeWithLLM(text) {
-  const response = await fetch('http://localhost:5000/api/analyze', {
+  const response = await fetch(`${API_BASE}/api/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

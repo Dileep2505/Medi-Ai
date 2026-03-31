@@ -58,38 +58,40 @@ export default function Login({
   };
 
   /* ================= GOOGLE LOGIN ================= */
-  const handleGoogleLogin = async (response) => {
-  try {
-    if (!response?.credential) {
-      throw new Error("No credential received");
+  const handleGoogleLogin = async (res) => {
+    try {
+      if (!res?.credential) {
+        throw new Error("No credential received");
+      }
+
+      const response = await fetch(`${API_BASE}/api/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          credential: res.credential
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Google login failed");
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (setUser) setUser(data.user);
+      if (setLoggedIn) setLoggedIn(true);
+      if (setActiveTab) setActiveTab("profile");
+
+    } catch (err) {
+      console.error("GOOGLE ERROR:", err);
+      setError(err.message || "Google login failed");
     }
-
-    const res = await fetch(`${API_BASE}/api/auth/google`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        credential: response.credential
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Google login failed");
-    }
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-
-    setUser(data.user);
-
-  } catch (err) {
-    console.error("GOOGLE ERROR:", err);
-    setError(err.message);
-  }
-};
+  };
 
   return (
     <div className="auth-container">
@@ -168,7 +170,10 @@ export default function Login({
 
           {/* GOOGLE LOGIN */}
           <div style={{ marginTop: "15px", textAlign: "center" }}>
-            <GoogleLogin onSuccess={handleGoogleLogin} />
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => setError("Google login failed")}
+            />
           </div>
 
           {/* SIGNUP */}
