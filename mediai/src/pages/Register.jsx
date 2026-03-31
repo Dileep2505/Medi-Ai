@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import "./Auth.css";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode"; 
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
@@ -22,7 +24,6 @@ const getPasswordStrength = (password) => {
   return "strong";
 };
 
-/* ================= UTILS ================= */
 const generateUsernameFromName = (name) => {
   if (!name) return "";
   const base = name
@@ -36,8 +37,6 @@ const generateUsernameFromName = (name) => {
 };
 
 export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
-
-  /* ================= STATE ================= */
   const [form, setForm] = useState({
     fullName: "",
     username: "",
@@ -75,11 +74,6 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
           `${API_BASE}/api/auth/check-username/${value}`
         );
 
-        if (!res.ok) {
-          console.error("Username API failed");
-          return;
-        }
-
         const data = await res.json();
 
         if (data.available) {
@@ -89,9 +83,7 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
           setUsernameStatus("taken");
           setSuggestions(data.suggestions || []);
         }
-
-      } catch (err) {
-        console.error(err);
+      } catch {
         setUsernameStatus(null);
       }
     }, 500);
@@ -118,10 +110,7 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
     if (form.password !== form.confirmPassword)
       return setError("Passwords mismatch");
 
-    let finalUsername = form.username;
-    if (!finalUsername) {
-      finalUsername = generateUsernameFromName(form.fullName);
-    }
+    let finalUsername = form.username || generateUsernameFromName(form.fullName);
 
     try {
       setLoading(true);
@@ -146,17 +135,42 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
       setLoggedIn(true);
 
       setSuccess("Account created!");
-      setTimeout(() => window.location.reload(), 500);
-
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Server error");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ================= UI ================= */
+  /* ================= GOOGLE LOGIN ================= */
+  const handleGoogleLogin = async (res) => {
+    try {
+      const decoded = jwtDecode(res.credential);
+      console.log(decoded);
+
+      const response = await fetch(`${API_BASE}/api/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          credential: res.credential
+        })
+      });
+
+      const data = await response.json();
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setUser(data.user);
+      setLoggedIn(true);
+
+    } catch {
+      setError("Google login failed");
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-right">
@@ -191,33 +205,17 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
               onChange={(e) => {
                 const val = e.target.value;
                 setForm({ ...form, username: val });
-
                 if (val.length > 2) checkUsername(val);
               }}
             />
           </div>
 
-          {/* USERNAME STATUS */}
-          {usernameStatus === "checking" && <p>Checking...</p>}
           {usernameStatus === "available" && (
             <p style={{ color: "green" }}>✔ Available</p>
           )}
 
           {usernameStatus === "taken" && (
-            <div className="username-suggestions">
-              <p className="auth-error">Username taken</p>
-
-              {suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() =>
-                    setForm({ ...form, username: s })
-                  }
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+            <p className="auth-error">Username taken</p>
           )}
 
           {/* EMAIL + PHONE */}
@@ -244,6 +242,20 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
             />
           </div>
 
+          {/* GENDER */}
+          <select
+            className="auth-input"
+            value={form.gender}
+            onChange={(e) =>
+              setForm({ ...form, gender: e.target.value })
+            }
+          >
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+
           {/* PASSWORD */}
           <div className="input-group">
             <input
@@ -257,14 +269,11 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
                 setPasswordStrength(getPasswordStrength(val));
               }}
             />
-            <span className="eye" onClick={() => setShowPassword(!showPassword)}>
-              
-            </span>
           </div>
 
           <p style={{ fontSize: 12 }}>Strength: {passwordStrength}</p>
 
-          {/* CONFIRM PASSWORD */}
+          {/* CONFIRM */}
           <div className="input-group">
             <input
               className="auth-input"
@@ -275,12 +284,9 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
                 setForm({ ...form, confirmPassword: e.target.value })
               }
             />
-            <span className="eye" onClick={() => setShowConfirm(!showConfirm)}>
-             
-            </span>
           </div>
 
-          {/* BUTTON */}
+          {/* REGISTER */}
           <button
             className="auth-button"
             onClick={register}
@@ -289,9 +295,34 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
             {loading ? "Creating..." : "Register"}
           </button>
 
-          {/* FEEDBACK */}
+          {/* GOOGLE */}
+          <div style={{ marginTop: 15 }}>
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => setError("Google login failed")}
+            />
+          </div>
+
+          {/* ERROR / SUCCESS */}
           {error && <p className="auth-error">{error}</p>}
           {success && <p className="auth-success">{success}</p>}
+
+          {/* BACK TO LOGIN */}
+          <div className="auth-link">
+            Back to{" "}
+            <button
+              style={{
+                background: "none",
+                border: "none",
+                color: "#2563eb",
+                fontWeight: "600",
+                cursor: "pointer"
+              }}
+              onClick={() => setAuthScreen("login")}
+            >
+              Login
+            </button>
+          </div>
 
         </div>
       </div>

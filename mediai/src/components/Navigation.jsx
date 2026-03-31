@@ -48,7 +48,6 @@ const styles = {
     display: "flex",
     gap: "20px",
     padding: "20px 30px",
-    marginRight: "98px",
     marginBottom: "1%",
     marginTop: "1%",
     borderRadius: "20px",

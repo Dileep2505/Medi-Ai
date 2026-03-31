@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./Auth.css";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
@@ -14,10 +16,10 @@ export default function Login({
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  /* ================= LOGIN ================= */
   const login = async () => {
     setError("");
 
-    // ✅ VALIDATION FIXED
     if (!form.identifier || !form.password) {
       setError("Enter email / username / phone and password");
       return;
@@ -31,57 +33,67 @@ export default function Login({
         headers: {
           "Content-Type": "application/json"
         },
-
-        // 🔥 FIXED HERE (MOST IMPORTANT)
         body: JSON.stringify({
           identifier: form.identifier,
           password: form.password
         })
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+      const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-
-      // ✅ SAFETY CHECK
-      if (!data.user || !data.user.userId) {
-        throw new Error("Invalid user data from server");
-      }
+      if (!res.ok) throw new Error(data.message || "Login failed");
 
       const user = data.user;
 
-      // ✅ STORE DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("userId", user.userId);
 
-      // ✅ UPDATE STATE
       setUser(user);
       setLoggedIn(true);
 
-      // 🔥 CLEAN REDIRECT (NO RELOAD NEEDED)
-      if (setActiveTab) {
-        setActiveTab("profile");
-      }
+      if (setActiveTab) setActiveTab("profile");
 
     } catch (err) {
       console.error("LOGIN ERROR:", err);
-
-      if (err.message.includes("Failed to fetch")) {
-        setError("Server unreachable / CORS issue");
-      } else {
-        setError(err.message);
-      }
-
+      setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  /* ================= GOOGLE LOGIN ================= */
+  const handleGoogleLogin = async (res) => {
+    try {
+      const decoded = jwtDecode(res.credential);
+      console.log("GOOGLE USER:", decoded);
+
+      const response = await fetch(`${API_BASE}/api/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          credential: res.credential
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message);
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("userId", data.user.userId);
+
+      setUser(data.user);
+      setLoggedIn(true);
+
+      if (setActiveTab) setActiveTab("profile");
+
+    } catch (err) {
+      console.error("GOOGLE LOGIN ERROR:", err);
+      setError("Google login failed");
     }
   };
 
@@ -122,17 +134,6 @@ export default function Login({
               }
             />
 
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: 10,
-                top: 12,
-                cursor: "pointer"
-              }}
-            >
-              
-            </span>
           </div>
 
           {/* FORGOT PASSWORD */}
@@ -158,21 +159,13 @@ export default function Login({
             {loading ? "Logging in..." : "Log in"}
           </button>
 
-          {/* GOOGLE */}
-          <button
-            style={{
-              marginTop: "10px",
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              cursor: "pointer",
-              background: "#fff"
-            }}
-            onClick={() => alert("Google login not implemented")}
-          >
-            🔐 Continue with Google
-          </button>
+          {/* GOOGLE LOGIN */}
+          <div style={{ marginTop: "15px", textAlign: "center" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => setError("Google login failed")}
+            />
+          </div>
 
           {/* SIGNUP */}
           <div className="auth-link">

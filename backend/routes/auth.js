@@ -4,8 +4,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
 import { sendEmail } from "../utils/mailer.js";
+import { OAuth2Client } from "google-auth-library";
 
 const router = express.Router();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /* ================= HELPERS ================= */
 const normalizeEmail = (email) => email.trim().toLowerCase();
@@ -198,6 +200,46 @@ router.post("/forgot-password", async (req, res) => {
   } catch (err) {
     console.error("FORGOT ERROR:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ================= GOOGLE LOGIN ================= */
+
+router.post("/google", async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        userId: Date.now().toString(),
+        fullName: name,
+        email,
+        avatar: picture
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user.userId },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token, user });
+
+  } catch (err) {
+    console.error("GOOGLE LOGIN ERROR:", err);
+    res.status(500).json({ message: "Google login failed" });
   }
 });
 
