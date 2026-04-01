@@ -67,32 +67,64 @@ export default function Login({
         </p>
         
         <div style={{ marginTop: "40px", paddingTop: "30px", borderTop: "1px solid rgba(255,255,255,0.2)" }}>
-          <h3 style={{ marginTop: "0", marginBottom: "15px", fontSize: "18px" }}>About MediAi</h3>
+          <h3 style={{ marginTop: "0", marginBottom: "12px", fontSize: "18px" }}>About MediAi</h3>
           
-          <div style={{ fontSize: "14px", lineHeight: "1.8", color: "rgba(255,255,255,0.9)" }}>
-            <p style={{ marginBottom: "12px" }}>
-              <strong>🏥 Intelligent Medical Analysis</strong><br/>
-              MediAi leverages AI-powered technology to analyze your medical reports, health conditions, and provide personalized insights.
+          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.85)", marginBottom: "18px", lineHeight: "1.6" }}>
+            <strong>Your Personal AI Health Assistant</strong><br/>
+            MediAi is a revolutionary healthcare platform combining artificial intelligence with medical expertise to help you understand your health better.
+          </p>
+          
+          <div style={{ fontSize: "13px", lineHeight: "1.8", color: "rgba(255,255,255,0.9)" }}>
+            <p style={{ marginBottom: "10px" }}>
+              <strong>🏥 Smart Analysis</strong><br/>
+              AI-powered medical report analysis & insights
             </p>
             
-            <p style={{ marginBottom: "12px" }}>
-              <strong>📊 Smart Health Tracking</strong><br/>
-              Track your health conditions, medications, and lab results in one secure place with our advanced analytics.
+            <p style={{ marginBottom: "10px" }}>
+              <strong>📊 Health Tracking</strong><br/>
+              Track conditions, medications & lab results
             </p>
             
-            <p style={{ marginBottom: "12px" }}>
-              <strong>💊 Medication Recommendations</strong><br/>
-              Get AI-driven medication suggestions based on your health profile and medical history.
+            <p style={{ marginBottom: "10px" }}>
+              <strong>💊 Recommendations</strong><br/>
+              Personalized medication suggestions
             </p>
             
-            <p style={{ marginBottom: "12px" }}>
+            <p style={{ marginBottom: "10px" }}>
               <strong>🔐 Secure & Private</strong><br/>
-              Your health data is encrypted and protected with enterprise-grade security standards.
+              Enterprise-grade encryption & protection
             </p>
             
-            <p style={{ marginBottom: "0" }}>
-              <strong>⚡ Fast & Efficient</strong><br/>
-              OCR-powered document scanning means instant analysis of your medical reports.
+            <p style={{ marginBottom: "15px" }}>
+              <strong>⚡ Fast Processing</strong><br/>
+              Instant OCR-powered document analysis
+            </p>
+          </div>
+
+          <div style={{ 
+            marginTop: "18px", 
+            paddingTop: "15px", 
+            borderTop: "1px solid rgba(255,255,255,0.15)",
+            fontSize: "12px"
+          }}>
+            <p style={{ margin: "0 0 10px 0", color: "rgba(255,255,255,0.8)" }}>
+              <strong>Website:</strong><br/>
+              <a href="https://mediai.indevs.in" target="_blank" rel="noopener noreferrer" 
+                style={{ color: "#6c63ff", textDecoration: "none" }}>
+                mediai.indevs.in
+              </a>
+            </p>
+
+            <p style={{ margin: "0 0 10px 0", color: "rgba(255,255,255,0.8)" }}>
+              <strong>Connect:</strong><br/>
+              <a href="https://github.com/Dileep2505" target="_blank" rel="noopener noreferrer" 
+                style={{ color: "#6c63ff", textDecoration: "none", marginRight: "15px" }}>
+                GitHub
+              </a>
+              <a href="https://www.linkedin.com/in/pasarthi-dileep-kumar-6710b3309/" target="_blank" rel="noopener noreferrer" 
+                style={{ color: "#6c63ff", textDecoration: "none" }}>
+                LinkedIn
+              </a>
             </p>
           </div>
         </div>
