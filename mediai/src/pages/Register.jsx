@@ -265,6 +265,29 @@ export default function Register({ setAuthScreen, setUser }) {
             {loading ? "Creating..." : "Register"}
           </button>
 
+          {/* GOOGLE BUTTON */}
+          <button
+            style={{
+              width: "100%",
+              padding: "12px",
+              marginTop: "15px",
+              border: "1px solid #e0e0e0",
+              borderRadius: "6px",
+              background: "#fff",
+              cursor: "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              opacity: 0.6
+            }}
+            disabled
+            title="Google login coming soon"
+          >
+            <span>🔐</span>
+            <span>Sign up with Google</span>
+          </button>
+
           {/* ERROR / SUCCESS */}
           {error && <p className="auth-error">{error}</p>}
           {success && <p className="auth-success">{success}</p>}

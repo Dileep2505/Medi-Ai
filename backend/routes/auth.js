@@ -4,10 +4,8 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
 import { sendEmail } from "../utils/mailer.js";
-import { OAuth2Client } from "google-auth-library";
 
 const router = express.Router();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /* ================= HELPERS ================= */
 const normalizeEmail = (email) => email.trim().toLowerCase();
@@ -200,78 +198,6 @@ router.post("/forgot-password", async (req, res) => {
   } catch (err) {
     console.error("FORGOT ERROR:", err);
     res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* ================= GOOGLE LOGIN ================= */
-/* ================= GOOGLE LOGIN ================= */
-
-router.post("/google", async (req, res) => {
-  try {
-    const { credential } = req.body;
-
-    if (!credential) {
-      return res.status(400).json({ message: "No credential provided" });
-    }
-
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
-
-    const payload = ticket.getPayload();
-
-    if (!payload) {
-      return res.status(400).json({ message: "Invalid Google token" });
-    }
-
-    const email = payload.email;
-    const fullName = payload.name || "User";
-
-    if (!email) {
-      return res.status(400).json({ message: "Google email not available" });
-    }
-
-    let user = await User.findOne({ email });
-
-    /* ================= CREATE USER ================= */
-    if (!user) {
-      let usernameBase = email.split("@")[0];
-
-      // 🔥 ensure unique username
-      let username = usernameBase;
-      let count = 0;
-
-      while (await User.findOne({ username })) {
-        count++;
-        username = `${usernameBase}_${count}`;
-      }
-
-      user = await User.create({
-        userId: crypto.randomBytes(6).toString("hex"),
-        fullName,
-        email,
-        username,
-        phone: "",
-        gender: "other",
-
-        // 🔥 IMPORTANT FIX
-        password: await bcrypt.hash(crypto.randomBytes(10).toString("hex"), 10)
-      });
-    }
-
-    /* ================= TOKEN ================= */
-    const token = jwt.sign(
-      { userId: user.userId },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    res.json({ token, user });
-
-  } catch (err) {
-    console.error("GOOGLE AUTH ERROR:", err);
-    res.status(500).json({ message: "Google login failed" });
   }
 });
 
