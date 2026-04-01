@@ -78,9 +78,8 @@ export default function ResetPassword() {
       setIsSuccess(true);
       setMessage("✅ Password updated successfully");
 
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
+      // Navigate immediately to homepage
+      navigate("/");
 
     } catch (err) {
       console.error("Reset error:", err);
