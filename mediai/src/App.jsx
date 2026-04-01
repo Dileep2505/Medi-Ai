@@ -9,22 +9,26 @@ import ReportsUpload from "./components/ReportsUpload";
 import HealthIssues from "./components/HealthIssues";
 import Medication from "./components/Medication";
 import UserProfile from "./components/UserProfile";
+import ErrorBoundary from "./ErrorBoundary";
 import { analyzeHealthDataAI } from "./services/aiHealthAnalyzer";
 import { extractTextFromImage, extractTextFromPDF } from "./utils/ocr";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
 
 /* ================= ROOT ================= */
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppProvider>
-        <Routes>
-          <Route path="/reset/:token" element={<ResetPassword />} />
-          <Route path="/*" element={<MainApp />} />
-        </Routes>
-      </AppProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AppProvider>
+          <Routes>
+            <Route path="/reset/:token" element={<ResetPassword />} />
+            <Route path="/*" element={<MainApp />} />
+          </Routes>
+        </AppProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
