@@ -257,7 +257,6 @@ export default function Register({ setAuthScreen, setUser }) {
             }
           />
 
-          {/* REGISTER */}
           <button
             className="auth-button"
             onClick={register}

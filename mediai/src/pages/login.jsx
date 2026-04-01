@@ -124,7 +124,6 @@ export default function Login({
             Forgot Password?
           </div>
 
-          {/* LOGIN BUTTON */}
           <button
             className="auth-button"
             onClick={login}
