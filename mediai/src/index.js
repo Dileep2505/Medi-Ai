@@ -4,6 +4,8 @@ import { HashRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App";
 import ErrorBoundary from "./ErrorBoundary";
+import "./index.css";
+import "./App.css";
 
 const container = document.getElementById("root");
 
