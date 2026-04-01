@@ -176,7 +176,7 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
 
     const clientUrl = process.env.CLIENT_URL || "https://mediai.indevs.in";
-    const resetLink = `${clientUrl}/#/reset/${token}`;
+    const resetLink = `${clientUrl}/reset/${token}`;
 
     await sendEmail(
       email,
