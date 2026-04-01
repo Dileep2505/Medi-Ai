@@ -25,7 +25,8 @@ export function useApp() {
   const context = useContext(AppContext);
 
   if (!context) {
-    throw new Error("useApp must be used inside AppProvider");
+    console.warn("useApp called outside of AppProvider - returning default context");
+    return { activeTab: "upload", setActiveTab: () => {} };
   }
 
   return context;

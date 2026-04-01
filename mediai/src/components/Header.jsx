@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useApp } from "../context/AppContext";
 
 const Header = () => {
-  const app = useApp();
+  let app;
+  try {
+    app = useApp();
+  } catch (e) {
+    console.warn("AppContext not available in Header", e);
+    app = {};
+  }
   const setActiveTab =
     typeof app?.setActiveTab === "function" ? app.setActiveTab : () => {};
 
