@@ -6,7 +6,6 @@ const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
 export default function Login({
   setUser,
-  setLoggedIn,
   setAuthScreen,
   setActiveTab
 }) {
@@ -41,13 +40,14 @@ export default function Login({
 
       if (!res.ok) throw new Error(data.message || "Login failed");
 
+      // ✅ STORE
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("userId", data.user.userId);
 
-      if (setUser) setUser(data.user);
-      if (setLoggedIn) setLoggedIn(true);
-      if (setActiveTab) setActiveTab("profile");
+      // ✅ SAFE CALLS
+      setUser?.(data.user);
+      setActiveTab?.("profile");
 
     } catch (err) {
       console.error("LOGIN ERROR:", err);
@@ -80,12 +80,13 @@ export default function Login({
         throw new Error(data.message || "Google login failed");
       }
 
+      // ✅ STORE
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      if (setUser) setUser(data.user);
-      if (setLoggedIn) setLoggedIn(true);
-      if (setActiveTab) setActiveTab("profile");
+      // ✅ SAFE CALLS
+      setUser?.(data.user);
+      setActiveTab?.("profile");
 
     } catch (err) {
       console.error("GOOGLE ERROR:", err);
@@ -130,7 +131,7 @@ export default function Login({
               }
             />
 
-            {/* 👁️ Eye Toggle */}
+            {/* 👁️ Toggle */}
             <span
               onClick={() => setShowPassword(!showPassword)}
               style={{
@@ -145,7 +146,7 @@ export default function Login({
             </span>
           </div>
 
-          {/* FORGOT PASSWORD */}
+          {/* FORGOT */}
           <div
             style={{
               textAlign: "right",
@@ -168,7 +169,7 @@ export default function Login({
             {loading ? "Logging in..." : "Log in"}
           </button>
 
-          {/* GOOGLE LOGIN */}
+          {/* GOOGLE */}
           <div style={{ marginTop: "15px", textAlign: "center" }}>
             <GoogleLogin
               onSuccess={handleGoogleLogin}

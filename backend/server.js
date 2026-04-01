@@ -89,6 +89,5 @@ app.listen(PORT, () => {
 
 console.log("ENV CHECK:", {
   jwt: process.env.JWT_SECRET ? "OK" : "MISSING",
-  mongo: process.env.MONGO_URI ? "OK" : "MISSING",
-  mail: process.env.MAIL_USER ? "OK" : "MISSING"
+  mongo: process.env.MONGO_URI ? "OK" : "MISSING"
 });
