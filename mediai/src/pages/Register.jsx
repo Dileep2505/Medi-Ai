@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import "./Auth.css";
 import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode"; 
+import { jwtDecode } from "jwt-decode";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
@@ -36,7 +36,8 @@ const generateUsernameFromName = (name) => {
   return `${base}_${Math.floor(100 + Math.random() * 900)}`;
 };
 
-export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
+export default function Register({ setAuthScreen, setUser }) {
+
   const [form, setForm] = useState({
     fullName: "",
     username: "",
@@ -130,11 +131,14 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
 
       if (!res.ok) return setError(data.message);
 
+      localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
-      setLoggedIn(true);
+
+      // ✅ SAFE CALL
+      setUser?.(data.user);
 
       setSuccess("Account created!");
+
     } catch {
       setError("Server error");
     } finally {
@@ -145,8 +149,12 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
   /* ================= GOOGLE LOGIN ================= */
   const handleGoogleLogin = async (res) => {
     try {
+      if (!res?.credential) {
+        throw new Error("Google credential missing");
+      }
+
       const decoded = jwtDecode(res.credential);
-      console.log(decoded);
+      console.log("GOOGLE USER:", decoded);
 
       const response = await fetch(`${API_BASE}/api/auth/google`, {
         method: "POST",
@@ -160,13 +168,18 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.message || "Google login failed");
+      }
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      setUser(data.user);
-      setLoggedIn(true);
+      // ✅ SAFE CALL
+      setUser?.(data.user);
 
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Google login failed");
     }
   };
@@ -257,34 +270,30 @@ export default function Register({ setAuthScreen, setUser, setLoggedIn }) {
           </select>
 
           {/* PASSWORD */}
-          <div className="input-group">
-            <input
-              className="auth-input"
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => {
-                const val = e.target.value;
-                setForm({ ...form, password: val });
-                setPasswordStrength(getPasswordStrength(val));
-              }}
-            />
-          </div>
+          <input
+            className="auth-input"
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => {
+              const val = e.target.value;
+              setForm({ ...form, password: val });
+              setPasswordStrength(getPasswordStrength(val));
+            }}
+          />
 
           <p style={{ fontSize: 12 }}>Strength: {passwordStrength}</p>
 
           {/* CONFIRM */}
-          <div className="input-group">
-            <input
-              className="auth-input"
-              type={showConfirm ? "text" : "password"}
-              placeholder="Confirm Password"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm({ ...form, confirmPassword: e.target.value })
-              }
-            />
-          </div>
+          <input
+            className="auth-input"
+            type={showConfirm ? "text" : "password"}
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
+          />
 
           {/* REGISTER */}
           <button
