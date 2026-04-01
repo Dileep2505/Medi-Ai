@@ -12,10 +12,15 @@ if (!container) {
   throw new Error("Root element not found");
 }
 
-const root = ReactDOM.createRoot(container);
+try {
+  const root = ReactDOM.createRoot(container);
 
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+} catch (error) {
+  console.error("React render error:", error);
+  container.innerHTML = `<div style='color: red; padding: 20px; font-family: monospace;'><h2>App Error</h2><pre>${error.message}</pre></div>`;
+}
