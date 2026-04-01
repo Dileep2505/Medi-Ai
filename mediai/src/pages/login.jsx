@@ -65,6 +65,37 @@ export default function Login({
         <p>
           Discover the power of personalized health insights and seamless tracking.
         </p>
+        
+        <div style={{ marginTop: "40px", paddingTop: "30px", borderTop: "1px solid rgba(255,255,255,0.2)" }}>
+          <h3 style={{ marginTop: "0", marginBottom: "15px", fontSize: "18px" }}>About MediAi</h3>
+          
+          <div style={{ fontSize: "14px", lineHeight: "1.8", color: "rgba(255,255,255,0.9)" }}>
+            <p style={{ marginBottom: "12px" }}>
+              <strong>🏥 Intelligent Medical Analysis</strong><br/>
+              MediAi leverages AI-powered technology to analyze your medical reports, health conditions, and provide personalized insights.
+            </p>
+            
+            <p style={{ marginBottom: "12px" }}>
+              <strong>📊 Smart Health Tracking</strong><br/>
+              Track your health conditions, medications, and lab results in one secure place with our advanced analytics.
+            </p>
+            
+            <p style={{ marginBottom: "12px" }}>
+              <strong>💊 Medication Recommendations</strong><br/>
+              Get AI-driven medication suggestions based on your health profile and medical history.
+            </p>
+            
+            <p style={{ marginBottom: "12px" }}>
+              <strong>🔐 Secure & Private</strong><br/>
+              Your health data is encrypted and protected with enterprise-grade security standards.
+            </p>
+            
+            <p style={{ marginBottom: "0" }}>
+              <strong>⚡ Fast & Efficient</strong><br/>
+              OCR-powered document scanning means instant analysis of your medical reports.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="auth-right">
