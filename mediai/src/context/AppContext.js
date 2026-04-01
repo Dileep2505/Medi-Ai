@@ -1,6 +1,13 @@
 import { createContext, useContext, useState } from "react";
 
-const AppContext = createContext();
+/* ================= CONTEXT ================= */
+
+const AppContext = createContext({
+  activeTab: "upload",
+  setActiveTab: () => {}
+});
+
+/* ================= PROVIDER ================= */
 
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState("upload");
@@ -12,6 +19,14 @@ export function AppProvider({ children }) {
   );
 }
 
+/* ================= HOOK ================= */
+
 export function useApp() {
-  return useContext(AppContext);
+  const context = useContext(AppContext);
+
+  if (!context) {
+    throw new Error("useApp must be used inside AppProvider");
+  }
+
+  return context;
 }

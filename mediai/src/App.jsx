@@ -30,7 +30,11 @@ function App() {
 /* ================= MAIN ================= */
 
 function MainApp() {
-  const { activeTab, setActiveTab } = useApp();
+
+  // ✅ SAFE CONTEXT
+  const appContext = useApp() || {};
+  const activeTab = appContext.activeTab || "upload";
+  const setActiveTab = appContext.setActiveTab || (() => {});
 
   const [authScreen, setAuthScreen] = useState("login");
   const [user, setUser] = useState(null);
@@ -50,7 +54,11 @@ function MainApp() {
     const savedUser = localStorage.getItem("user");
 
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        setUser(null);
+      }
     }
   }, []);
 
@@ -82,7 +90,7 @@ function MainApp() {
         .trim()
         .slice(0, 12000);
 
-      const result = await analyzeHealthDataAI(combinedText);
+      const result = await analyzeHealthDataAI(combinedText) || {};
 
       setAiAnalysis({
         healthIssues: result.healthIssues || [],
@@ -90,6 +98,7 @@ function MainApp() {
       });
 
       setActiveTab("health");
+
     } catch (error) {
       console.error(error);
       alert("AI analysis failed");
