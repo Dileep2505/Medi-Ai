@@ -11,7 +11,6 @@ import Medication from "./components/Medication";
 import UserProfile from "./components/UserProfile";
 import { analyzeHealthDataAI } from "./services/aiHealthAnalyzer";
 import { extractTextFromImage, extractTextFromPDF } from "./utils/ocr";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider, useApp } from "./context/AppContext";
 
 /* ================= ROOT ================= */
