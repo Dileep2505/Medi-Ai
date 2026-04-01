@@ -4,11 +4,20 @@ import "./index.css";
 import "./App.css";
 
 // Handle old hash-based routes for backward compatibility
-// Convert /#/reset/token to /reset/token
+// Convert /#/reset/token to /reset/token with page reload
 if (window.location.hash.startsWith("#/reset/")) {
   const token = window.location.hash.replace("#/reset/", "");
-  if (token) {
-    window.history.replaceState(null, null, `/reset/${token}`);
+  if (token && token.length > 10) {
+    // Use location.replace for a clean navigation with page reload
+    window.location.replace(`/reset/${token}`);
+  }
+}
+
+// Also handle other hash routes like /#/login, /#/register, /#/forgot, etc.
+if (window.location.hash.startsWith("#/") && !window.location.hash.startsWith("#/reset/")) {
+  const path = window.location.hash.replace("#", "");
+  if (path && path.length > 1 && !window.location.pathname.startsWith(path)) {
+    window.location.replace(path);
   }
 }
 

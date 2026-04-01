@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
@@ -16,6 +16,14 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Debug log on mount
+  useEffect(() => {
+    console.log("ResetPassword component mounted with token:", token);
+    if (!token) {
+      setMessage("⚠️ Invalid reset link - token not found");
+    }
+  }, [token]);
 
   const reset = async () => {
     setMessage("");
@@ -68,14 +76,14 @@ export default function ResetPassword() {
       }
 
       setIsSuccess(true);
-      setMessage("Password updated successfully");
+      setMessage("✅ Password updated successfully");
 
       setTimeout(() => {
         navigate("/");
       }, 2000);
 
     } catch (err) {
-      console.error(err);
+      console.error("Reset error:", err);
       setMessage(err.message || "Server error");
     } finally {
       setLoading(false);
@@ -85,7 +93,7 @@ export default function ResetPassword() {
   return (
     <div style={container}>
       <div style={card}>
-        <h2 style={title}>Reset Password</h2>
+        <h2 style={title}>🔐 Reset Password</h2>
         <p style={subtitle}>Enter your new secure password</p>
 
         {message && (
@@ -95,7 +103,7 @@ export default function ResetPassword() {
         )}
 
         {/* PASSWORD */}
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", marginBottom: "16px" }}>
           <input
             type={showPassword ? "text" : "password"}
             placeholder="New Password"
@@ -113,7 +121,7 @@ export default function ResetPassword() {
         </div>
 
         {/* CONFIRM PASSWORD */}
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", marginBottom: "16px" }}>
           <input
             type={showConfirm ? "text" : "password"}
             placeholder="Confirm Password"
