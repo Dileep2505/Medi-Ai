@@ -108,6 +108,7 @@ export default function ResetPassword() {
             onClick={() => setShowPassword(!showPassword)}
             style={eye}
           >
+            {showPassword ? "🙈" : "👁️"}
           </span>
         </div>
 
@@ -127,6 +128,7 @@ export default function ResetPassword() {
             onClick={() => setShowConfirm(!showConfirm)}
             style={eye}
           >
+            {showConfirm ? "🙈" : "👁️"}
           </span>
         </div>
 

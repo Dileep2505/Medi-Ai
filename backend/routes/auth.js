@@ -175,20 +175,37 @@ router.post("/forgot-password", async (req, res) => {
     user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
     await user.save();
 
+    const clientUrl = process.env.CLIENT_URL || "https://mediai.indevs.in";
+    const resetLink = `${clientUrl}/#/reset/${token}`;
+
     await sendEmail(
       email,
       "🔐 Reset Your MediAI Password",
       `
-      <div style="font-family:Arial;padding:20px">
-        <h2>MediAI</h2>
-        <p>Click below to reset password</p>
-        <a href="${process.env.CLIENT_URL}/#/reset/${token}"
-          style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">
-          Reset Password
-        </a>
-        <p style="margin-top:10px;font-size:12px">
-          Link expires in 15 minutes
-        </p>
+      <div style="font-family:Arial;padding:20px;max-width:600px;margin:0 auto;">
+        <div style="background:#f0f9ff;padding:20px;border-radius:8px;border-left:4px solid #2563eb;">
+          <h2 style="color:#1e40af;margin:0;">MediAI</h2>
+          <p style="margin-top:10px;color:#333;">Hello,</p>
+          <p style="color:#333;line-height:1.6;">
+            You requested to reset your password. Click the button below to create a new password.
+          </p>
+          <div style="margin:20px 0;">
+            <a href="${resetLink}"
+              style="background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;font-weight:bold;">
+              Reset Password
+            </a>
+          </div>
+          <p style="color:#666;font-size:13px;margin-top:20px;">
+            Or copy this link: <br />
+            <code style="background:#e8f1ff;padding:8px;border-radius:4px;word-break:break-all;">${resetLink}</code>
+          </p>
+          <p style="color:#999;font-size:12px;margin-top:20px;">
+            ⏱️ This link expires in <strong>15 minutes</strong>
+          </p>
+          <p style="color:#999;font-size:12px;margin-top:10px;">
+            If you didn't request this, please ignore this email.
+          </p>
+        </div>
       </div>
       `
     );
