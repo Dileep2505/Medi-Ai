@@ -1,7 +1,5 @@
 import React, { useState, useRef } from "react";
 import "./Auth.css";
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
@@ -146,43 +144,7 @@ export default function Register({ setAuthScreen, setUser }) {
     }
   };
 
-  /* ================= GOOGLE LOGIN ================= */
-  const handleGoogleLogin = async (res) => {
-    try {
-      if (!res?.credential) {
-        throw new Error("Google credential missing");
-      }
 
-      const decoded = jwtDecode(res.credential);
-      console.log("GOOGLE USER:", decoded);
-
-      const response = await fetch(`${API_BASE}/api/auth/google`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          credential: res.credential
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Google login failed");
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // ✅ SAFE CALL
-      setUser?.(data.user);
-
-    } catch (err) {
-      console.error(err);
-      setError("Google login failed");
-    }
-  };
 
   return (
     <div className="auth-container">
@@ -303,14 +265,6 @@ export default function Register({ setAuthScreen, setUser }) {
           >
             {loading ? "Creating..." : "Register"}
           </button>
-
-          {/* GOOGLE */}
-          <div style={{ marginTop: 15 }}>
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => setError("Google login failed")}
-            />
-          </div>
 
           {/* ERROR / SUCCESS */}
           {error && <p className="auth-error">{error}</p>}

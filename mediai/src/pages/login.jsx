@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./Auth.css";
-import { GoogleLogin } from "@react-oauth/google";
 
 const API_BASE = "https://medi-ai-backend-226z.onrender.com";
 
@@ -57,42 +56,7 @@ export default function Login({
     }
   };
 
-  /* ================= GOOGLE LOGIN ================= */
-  const handleGoogleLogin = async (res) => {
-    try {
-      if (!res?.credential) {
-        throw new Error("No credential received");
-      }
 
-      const response = await fetch(`${API_BASE}/api/auth/google`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          credential: res.credential
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Google login failed");
-      }
-
-      // ✅ STORE
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // ✅ SAFE CALLS
-      setUser?.(data.user);
-      setActiveTab?.("profile");
-
-    } catch (err) {
-      console.error("GOOGLE ERROR:", err);
-      setError(err.message || "Google login failed");
-    }
-  };
 
   return (
     <div className="auth-container">
@@ -168,14 +132,6 @@ export default function Login({
           >
             {loading ? "Logging in..." : "Log in"}
           </button>
-
-          {/* GOOGLE */}
-          <div style={{ marginTop: "15px", textAlign: "center" }}>
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => setError("Google login failed")}
-            />
-          </div>
 
           {/* SIGNUP */}
           <div className="auth-link">
