@@ -3,6 +3,15 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import "./App.css";
 
+// Handle old hash-based routes for backward compatibility
+// Convert /#/reset/token to /reset/token
+if (window.location.hash.startsWith("#/reset/")) {
+  const token = window.location.hash.replace("#/reset/", "");
+  if (token) {
+    window.history.replaceState(null, null, `/reset/${token}`);
+  }
+}
+
 // Lazy load App to ensure all dependencies are initialized
 const LazyApp = React.lazy(() => 
   import("./App").catch((err) => {
